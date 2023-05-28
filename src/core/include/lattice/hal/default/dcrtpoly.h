@@ -998,8 +998,8 @@ public:
         const std::shared_ptr<DCRTPolyImpl::Params> paramsQlPl;
         const std::shared_ptr<DCRTPolyImpl::Params> paramsPl;
         const std::shared_ptr<DCRTPolyImpl::Params> paramsQl;
-        const std::vector<NativeInteger> mPlQHatInvModq;
-        const std::vector<NativeInteger> mPlQHatInvModqPrecon;
+        const std::vector<NativeInteger> mNegPlQHatInvModq;
+        const std::vector<NativeInteger> mNegPlQHatInvModqPrecon;
         const std::vector<std::vector<NativeInteger>> qInvModp;
         const std::vector<DoubleNativeInt> modpBarrettMu;
         const std::vector<NativeInteger> PlHatInvModp;
@@ -1027,8 +1027,8 @@ public:
             : paramsQlPl(paramsQlPl0),
               paramsPl(paramsPl0),
               paramsQl(paramsQl0),
-              mPlQHatInvModq(mPlQHatInvModq0),
-              mPlQHatInvModqPrecon(mPlQHatInvModqPrecon0),
+              mNegPlQHatInvModq(mPlQHatInvModq0),
+              mNegPlQHatInvModqPrecon(mPlQHatInvModqPrecon0),
               qInvModp(qInvModp0),
               modpBarrettMu(modpBarrettMu0),
               PlHatInvModp(PlHatInvModp0),

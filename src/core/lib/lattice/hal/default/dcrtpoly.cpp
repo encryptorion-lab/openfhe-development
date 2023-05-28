@@ -1845,10 +1845,10 @@ void DCRTPolyImpl<VecType>::FastExpandCRTBasisPloverQ(const CRTBasisExtensionPre
             const NativeInteger& xi                     = m_vectors[i][ri];
             const NativeInteger& qi                     = m_vectors[i].GetModulus();
             const std::vector<NativeInteger>& qInvModpi = precomputed.qInvModp[i];
-            NativeInteger xQHatInvModqi =
-                xi.ModMulFastConst(precomputed.mPlQHatInvModq[i], qi, precomputed.mPlQHatInvModqPrecon[i]);
+            NativeInteger xPlQHatInvModqi =
+                xi.ModMulFastConst(precomputed.mNegPlQHatInvModq[i], qi, precomputed.mNegPlQHatInvModqPrecon[i]);
             for (usint j = 0; j < sizePl; j++) {
-                auto a = xQHatInvModqi.ConvertToInt();
+                auto a = xPlQHatInvModqi.ConvertToInt();
                 auto b = qInvModpi[j].ConvertToInt();
                 sum[j] += Mul128(a, b);
             }
