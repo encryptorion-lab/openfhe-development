@@ -251,7 +251,7 @@ Ciphertext<DCRTPoly> LeveledSHEBFVRNS::EvalMult(ConstCiphertext<DCRTPoly> cipher
                     cv1[i].ScaleAndRound(cryptoParams->GetParamsQl(l), cryptoParams->GetQlQHatInvModqDivqModq(l),
                                          cryptoParams->GetQlQHatInvModqDivqFrac(l), cryptoParams->GetModqBarrettMu());
             }
-            // Expand ciphertext1 from basis Q_l to PQ_l.
+            // Expand ciphertext1 from basis Q_l to Q_lR_l.
             cv1[i].ExpandCRTBasis(cryptoParams->GetParamsQlRl(l), cryptoParams->GetParamsRl(l),
                                   cryptoParams->GetQlHatInvModq(l), cryptoParams->GetQlHatInvModqPrecon(l),
                                   cryptoParams->GetQlHatModr(l), cryptoParams->GetalphaQlModr(l),
@@ -267,7 +267,7 @@ Ciphertext<DCRTPoly> LeveledSHEBFVRNS::EvalMult(ConstCiphertext<DCRTPoly> cipher
 
         for (size_t i = 0; i < cv2Size; i++) {
             cv2[i].SetFormat(Format::COEFFICIENT);
-            // Switch ciphertext2 from basis Q to P to PQ.
+            // Switch ciphertext2 from basis Q to R_l to Q_lR_l.
             cv2[i].FastExpandCRTBasisPloverQ(basisPQ);
             cv2[i].SetFormat(Format::EVALUATION);
         }
