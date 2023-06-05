@@ -42,12 +42,12 @@
 #include "math/nbtheory.cpp"                 // NOLINT
 #include "math/ternaryuniformgenerator.cpp"  // NOLINT
 
-namespace bigintfxd {
+namespace bigintdyn {
 
-template class ChineseRemainderTransformFTTFxd<BigVector>;
-template class ChineseRemainderTransformArbFxd<BigVector>;
+template class ChineseRemainderTransformFTTDyn<BigVector>;
+template class ChineseRemainderTransformArbDyn<BigVector>;
 
-}  // namespace bigintfxd
+}  // namespace bigintdyn
 
 namespace lbcrypto {
 
