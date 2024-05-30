@@ -98,6 +98,9 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
 
     uint64_t qKS = 1 << 30;
     qKS <<= 5;
+    if (NATIVEINT == 32) {  // workaround for 32-bit
+        qKS = Q.ConvertToInt();
+    }
 
     uint32_t n      = (set == TOY) ? 32 : 1305;
     auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, Q, qKS, 3.19, 32);
