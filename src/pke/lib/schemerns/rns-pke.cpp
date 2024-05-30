@@ -56,7 +56,7 @@ Ciphertext<DCRTPoly> PKERNS::Encrypt(DCRTPoly plaintext, const PublicKey<DCRTPol
     Ciphertext<DCRTPoly> ciphertext(std::make_shared<CiphertextImpl<DCRTPoly>>(publicKey));
 
     const std::shared_ptr<ParmType> ptxtParams = plaintext.GetParams();
-    std::shared_ptr<std::vector<DCRTPoly>> ba  = EncryptZeroCore(publicKey, ptxtParams, DggType());
+    std::shared_ptr<std::vector<DCRTPoly>> ba  = EncryptZeroCore(publicKey, ptxtParams);
 
     plaintext.SetFormat(EVALUATION);
 
@@ -77,7 +77,7 @@ DecryptResult PKERNS::Decrypt(ConstCiphertext<DCRTPoly> ciphertext, const Privat
     size_t sizeQl = b.GetParams()->GetParams().size();
 
     if (sizeQl == 0)
-        OPENFHE_THROW(math_error, "Decryption failure: No towers left; consider increasing the depth.");
+        OPENFHE_THROW("Decryption failure: No towers left; consider increasing the depth.");
 
     if (sizeQl == 1) {
         *plaintext = Poly(b.GetElementAtIndex(0), Format::COEFFICIENT);
@@ -98,9 +98,8 @@ DecryptResult PKERNS::Decrypt(ConstCiphertext<DCRTPoly> ciphertext, const Privat
     const size_t sizeQl = b.GetParams()->GetParams().size();
     if (sizeQl != 1) {
         OPENFHE_THROW(
-            math_error,
             "sizeQl " + std::to_string(sizeQl) +
-                "!= 1. If sizeQl = 0, consider increasing the depth. If sizeQl > 1, check parameters (this is unsupported for NativePoly).");
+            "!= 1. If sizeQl = 0, consider increasing the depth. If sizeQl > 1, check parameters (this is unsupported for NativePoly).");
     }
 
     *plaintext = b.GetElementAtIndex(0);
@@ -146,13 +145,12 @@ std::shared_ptr<std::vector<DCRTPoly>> PKERNS::EncryptZeroCore(const PrivateKey<
 }
 
 std::shared_ptr<std::vector<DCRTPoly>> PKERNS::EncryptZeroCore(const PublicKey<DCRTPoly> publicKey,
-                                                               const std::shared_ptr<ParmType> params,
-                                                               const DggType& dgg) const {
+                                                               const std::shared_ptr<ParmType> params) const {
     const auto cryptoParams = std::dynamic_pointer_cast<CryptoParametersRNS>(publicKey->GetCryptoParameters());
 
     const std::vector<DCRTPoly>& pk = publicKey->GetPublicElements();
     const auto ns                   = cryptoParams->GetNoiseScale();
-    const DggType& dggsecret        = cryptoParams->GetDiscreteGaussianGenerator();
+    const DggType& dgg              = cryptoParams->GetDiscreteGaussianGenerator();
 
     TugType tug;
 
@@ -160,15 +158,14 @@ std::shared_ptr<std::vector<DCRTPoly>> PKERNS::EncryptZeroCore(const PublicKey<D
     // TODO (dsuponit): "tug" must be assigned with TernaryUniformGenerator. Otherwise the DCRTPoly constructor crashes.
     // check other files if "tug" is properly assigned
     // if (cryptoParams->GetSecretKeyDist() != GAUSSIAN) {
-    //    OPENFHE_THROW(math_error, "TugType tug must be assigned");
+    //    OPENFHE_THROW("TugType tug must be assigned");
     //}
-    DCRTPoly v = cryptoParams->GetSecretKeyDist() == GAUSSIAN ? DCRTPoly(dggsecret, elementParams, Format::EVALUATION) :
+    DCRTPoly v = cryptoParams->GetSecretKeyDist() == GAUSSIAN ? DCRTPoly(dgg, elementParams, Format::EVALUATION) :
                                                                 DCRTPoly(tug, elementParams, Format::EVALUATION);
 
-    const DggType& dggGen = dgg.IsInitialized() ? dgg : cryptoParams->GetDiscreteGaussianGenerator();
-
-    DCRTPoly e0(dggGen, elementParams, Format::EVALUATION);
-    DCRTPoly e1(dggGen, elementParams, Format::EVALUATION);
+    // noise generation with the discrete gaussian generator dgg
+    DCRTPoly e0(dgg, elementParams, Format::EVALUATION);
+    DCRTPoly e1(dgg, elementParams, Format::EVALUATION);
 
     uint32_t sizeQ  = pk[0].GetParams()->GetParams().size();
     uint32_t sizeQl = elementParams->GetParams().size();

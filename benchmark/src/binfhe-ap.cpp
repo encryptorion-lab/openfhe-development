@@ -33,18 +33,8 @@
  * This file benchmarks FHEW-AP gate evaluation operations
  */
 
-#define PROFILE
 #include "benchmark/benchmark.h"
-
-#include <fstream>
-#include <iostream>
-#include <iterator>
-#include <limits>
-#include <random>
-
 #include "binfhecontext.h"
-
-#include "utils/debug.h"
 
 using namespace lbcrypto;
 
@@ -61,6 +51,34 @@ BinFHEContext GenerateFHEWContext(BINFHE_PARAMSET set) {
 /*
  * FHEW benchmarks
  */
+template <class ParamSet>
+void FHEW_BTKEYGEN(benchmark::State& state, ParamSet param_set) {
+    BINFHE_PARAMSET param(param_set);
+    BinFHEContext cc = GenerateFHEWContext(param);
+    for (auto _ : state) {
+        LWEPrivateKey sk = cc.KeyGen();
+        cc.BTKeyGen(sk);
+    }
+}
+
+BENCHMARK_CAPTURE(FHEW_BTKEYGEN, MEDIUM, MEDIUM)->Unit(benchmark::kMicrosecond);
+BENCHMARK_CAPTURE(FHEW_BTKEYGEN, STD128, STD128)->Unit(benchmark::kMicrosecond);
+BENCHMARK_CAPTURE(FHEW_BTKEYGEN, STD128_AP, STD128_AP)->Unit(benchmark::kMicrosecond);
+
+template <class ParamSet>
+void FHEW_ENCRYPT(benchmark::State& state, ParamSet param_set) {
+    BINFHE_PARAMSET param(param_set);
+    BinFHEContext cc = GenerateFHEWContext(param);
+
+    LWEPrivateKey sk = cc.KeyGen();
+    for (auto _ : state) {
+        LWECiphertext ct1 = cc.Encrypt(sk, 1, FRESH);
+    }
+}
+
+BENCHMARK_CAPTURE(FHEW_ENCRYPT, MEDIUM, MEDIUM)->Unit(benchmark::kMicrosecond);
+BENCHMARK_CAPTURE(FHEW_ENCRYPT, STD128, STD128)->Unit(benchmark::kMicrosecond);
+BENCHMARK_CAPTURE(FHEW_ENCRYPT, STD128_AP, STD128_AP)->Unit(benchmark::kMicrosecond);
 
 template <class ParamSet>
 void FHEW_NOT(benchmark::State& state, ParamSet param_set) {
@@ -112,10 +130,6 @@ BENCHMARK_CAPTURE(FHEW_BINGATE, MEDIUM_XOR, MEDIUM, XOR)->Unit(benchmark::kMicro
 
 BENCHMARK_CAPTURE(FHEW_BINGATE, MEDIUM_XNOR, MEDIUM, XNOR)->Unit(benchmark::kMicrosecond);
 
-BENCHMARK_CAPTURE(FHEW_BINGATE, MEDIUM_XOR_FAST, MEDIUM, XOR_FAST)->Unit(benchmark::kMicrosecond);
-
-BENCHMARK_CAPTURE(FHEW_BINGATE, MEDIUM_XNOR_FAST, MEDIUM, XNOR_FAST)->Unit(benchmark::kMicrosecond);
-
 BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_OR, STD128, OR)->Unit(benchmark::kMicrosecond)->MinTime(10.0);
 
 BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_AND, STD128, AND)->Unit(benchmark::kMicrosecond);
@@ -128,10 +142,6 @@ BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_XOR, STD128, XOR)->Unit(benchmark::kMicro
 
 BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_XNOR, STD128, XNOR)->Unit(benchmark::kMicrosecond);
 
-BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_XOR_FAST, STD128, XOR_FAST)->Unit(benchmark::kMicrosecond);
-
-BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_XNOR_FAST, STD128, XNOR_FAST)->Unit(benchmark::kMicrosecond);
-
 BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_AP_OR, STD128_AP, OR)->Unit(benchmark::kMicrosecond)->MinTime(10.0);
 
 BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_AP_AND, STD128_AP, AND)->Unit(benchmark::kMicrosecond);
@@ -143,10 +153,6 @@ BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_AP_NAND, STD128_AP, NAND)->Unit(benchmark
 BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_AP_XOR, STD128_AP, XOR)->Unit(benchmark::kMicrosecond);
 
 BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_AP_XNOR, STD128_AP, XNOR)->Unit(benchmark::kMicrosecond);
-
-BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_AP_XOR_FAST, STD128_AP, XOR_FAST)->Unit(benchmark::kMicrosecond);
-
-BENCHMARK_CAPTURE(FHEW_BINGATE, STD128_AP_XNOR_FAST, STD128_AP, XNOR_FAST)->Unit(benchmark::kMicrosecond);
 
 // benchmark for key switching
 template <class ParamSet>

@@ -6,13 +6,17 @@ OpenFHE is an open-source FHE library that includes efficient implementations of
   * Brakerski/Fan-Vercauteren (BFV) scheme for integer arithmetic
   * Brakerski-Gentry-Vaikuntanathan (BGV) scheme for integer arithmetic
   * Cheon-Kim-Kim-Song (CKKS) scheme for real-number arithmetic (includes approximate bootstrapping)
-  * Ducas-Micciancio (DM) and Chillotti-Gama-Georgieva-Izabachene (CGGI) schemes for evaluating Boolean circuits and arbitrary functions over larger plaintext spaces using lookup tables
+  * Ducas-Micciancio (DM/FHEW), Chillotti-Gama-Georgieva-Izabachene (CGGI/TFHE), and Lee-Micciancio-Kim-Choi-Deryabin-Eom-Yoo (LMKCDEY) schemes for evaluating Boolean circuits and arbitrary functions over larger plaintext spaces using lookup tables
 
 OpenFHE also includes the following multiparty extensions of FHE:
   * Threshold FHE for BGV, BFV, and CKKS schemes
+  * Interactive bootstrapping for Threshold CKKS
   * Proxy Re-Encryption for BGV, BFV, and CKKS schemes
 
-OpenFHE supports any GNU C++ compiler version 9 or above and clang C++ compiler version 10 or above.
+OpenFHE also supports switching between CKKS and FHEW/TFHE to evaluate non-smooth functions, e.g., comparison, using FHEW/TFHE functional bootstrapping.
+
+OpenFHE supports any GNU C++ compiler version 9 or above and clang C++ compiler version 10 or above. To achieve the best runtime performance, we recommend following the
+guidelines outlined in [building OpenFHE for best performance](https://github.com/openfheorg/openfhe-development/blob/main/docs/static_docs/Best_Performance.md).
 
 ## Links and Resources
 
@@ -60,14 +64,26 @@ To get familiar with the main API of OpenFHE, we recommend looking at the code o
        4. [Advanced CKKS Bootstrapping Example](src/pke/examples/advanced-ckks-bootstrapping.cpp)
        5. [Double-Precision (Iterative) Bootstrapping Example](src/pke/examples/iterative-ckks-bootstrapping.cpp)
    1. FHE for Boolean circuits and larger plaintext spaces (FHEW/TFHE):
-       1. [Simple Code Example](src/binfhe/examples/boolean.cpp)
+       1. [Simple Code Example with Symmetric Encryption](src/binfhe/examples/boolean.cpp)
+       2. [Simple Code Example with PKE](src/binfhe/examples/pke/boolean-pke.cpp)
+       2. [Evaluation of Multi-Input Gates](src/binfhe/examples/boolean-multi-input.cpp)
        2. [Code with JSON serialization](src/binfhe/examples/boolean-serial-json.cpp)
        3. [Code with Binary Serialization](src/binfhe/examples/boolean-serial-binary.cpp)
        4. [Large-Precision Comparison](src/binfhe/examples/eval-sign.cpp)
        4. [Small-Precison Arbitrary Function Evaluation](src/binfhe/examples/eval-function.cpp)
+   1. Scheme Switching:
+       1. [Examples with Scheme Switching between CKKS and FHEW/TFHE](src/pke/examples/scheme-switching.cpp)
    1. Threshold FHE:
        1. [Code Example for BGV, BFV, and CKKS](src/pke/examples/threshold-fhe.cpp)
+       1. [Simple Interactive Bootstrapping Example](src/pke/examples/tckks-interactive-mp-bootstrapping.cpp)
+       1. [Interactive Bootstrapping after Chebyshev Approximation](src/pke/examples/tckks-interactive-mp-bootstrapping-Chebyshev.cpp)
        1. [Code Example for BFV with 5 parties](src/pke/examples/threshold-fhe-5p.cpp)
+
+## Main API
+
+- [PKE CryptoContext API (BGV/BFV/CKKS)](https://openfhe-development.readthedocs.io/en/latest/api/classlbcrypto_1_1CryptoContextImpl.html)
+
+- [BinFHE Context API (FHEW/TFHE)](https://openfhe-development.readthedocs.io/en/latest/api/classlbcrypto_1_1BinFHEContext.html)
 
 ## Code of Conduct
 
@@ -94,7 +110,7 @@ We welcome all contributions including but not limited to:
 
 ## How to Cite OpenFHE
 
-To cite OpenFHE in academic papers, please use the following BibTeX entry.
+To cite OpenFHE in academic papers, please use the following BibTeX entry
 
 ```
 @misc{OpenFHE,
@@ -104,6 +120,23 @@ To cite OpenFHE in academic papers, please use the following BibTeX entry.
       year = {2022},
       note = {\url{https://eprint.iacr.org/2022/915}},
       url = {https://eprint.iacr.org/2022/915}
+}
+```
+or, alternatively (WAHC@CCS'22 version),
+```
+@inproceedings{10.1145/3560827.3563379,
+      author = {Al Badawi, Ahmad and Bates, Jack and Bergamaschi, Flavio and Cousins, David Bruce and Erabelli, Saroja and Genise, Nicholas and Halevi, Shai and Hunt, Hamish and Kim, Andrey and Lee, Yongwoo and Liu, Zeyu and Micciancio, Daniele and Quah, Ian and Polyakov, Yuriy and R.V., Saraswathy and Rohloff, Kurt and Saylor, Jonathan and Suponitsky, Dmitriy and Triplett, Matthew and Vaikuntanathan, Vinod and Zucca, Vincent},
+      title = {OpenFHE: Open-Source Fully Homomorphic Encryption Library},
+      year = {2022},
+      publisher = {Association for Computing Machinery},
+      address = {New York, NY, USA},
+      url = {https://doi.org/10.1145/3560827.3563379},
+      doi = {10.1145/3560827.3563379},
+      booktitle = {Proceedings of the 10th Workshop on Encrypted Computing \& Applied Homomorphic Cryptography},
+      pages = {53-63},
+      numpages = {11},
+      location = {Los Angeles, CA, USA},
+      series = {WAHC'22}
 }
 ```
 

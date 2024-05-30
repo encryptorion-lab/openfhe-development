@@ -33,21 +33,16 @@
   This file contains template instantiations for all math classes & functions using math be4
  */
 
-#include "math/hal.h"
-#include "math/binaryuniformgenerator.cpp"     // NOLINT
-#include "math/discretegaussiangenerator.cpp"  // NOLINT
-#include "math/discreteuniformgenerator.cpp"   // NOLINT
-#include "math/matrix.cpp"                     // NOLINT
-#include "math/matrix.h"
-#include "math/nbtheory.cpp"                 // NOLINT
-#include "math/ternaryuniformgenerator.cpp"  // NOLINT
+#include "config_core.h"
+#ifdef WITH_BE4
 
-namespace bigintdyn {
-
-template class ChineseRemainderTransformFTTDyn<BigVector>;
-template class ChineseRemainderTransformArbDyn<BigVector>;
-
-}  // namespace bigintdyn
+    #include "math/math-hal.h"
+    #include "math/binaryuniformgenerator-impl.h"
+    #include "math/discretegaussiangenerator-impl.h"
+    #include "math/discreteuniformgenerator-impl.h"
+    #include "math/matrix-impl.h"
+    #include "math/nbtheory-impl.h"
+    #include "math/ternaryuniformgenerator-impl.h"
 
 namespace lbcrypto {
 
@@ -57,14 +52,15 @@ template class TernaryUniformGeneratorImpl<M4Vector>;
 template class DiscreteUniformGeneratorImpl<M4Vector>;
 
 template M4Integer RootOfUnity<M4Integer>(usint m, const M4Integer& modulo);
-template std::vector<M4Integer> RootsOfUnity(usint m, const std::vector<M4Integer> moduli);
+template std::vector<M4Integer> RootsOfUnity(usint m, const std::vector<M4Integer>& moduli);
 template M4Integer GreatestCommonDivisor(const M4Integer& a, const M4Integer& b);
 template bool MillerRabinPrimalityTest(const M4Integer& p, const usint niter);
 template const M4Integer PollardRhoFactorization(const M4Integer& n);
 template void PrimeFactorize(M4Integer n, std::set<M4Integer>& primeFactors);
-template M4Integer FirstPrime(uint64_t nBits, uint64_t m);
-template M4Integer NextPrime(const M4Integer& q, uint64_t cyclotomicOrder);
-template M4Integer PreviousPrime(const M4Integer& q, uint64_t cyclotomicOrder);
+template M4Integer FirstPrime(uint32_t nBits, uint32_t m);
+template M4Integer LastPrime(uint32_t nBits, uint32_t m);
+template M4Integer NextPrime(const M4Integer& q, uint32_t m);
+template M4Integer PreviousPrime(const M4Integer& q, uint32_t m);
 template std::vector<M4Integer> GetTotientList(const M4Integer& n);
 template M4Vector PolyMod(const M4Vector& dividend, const M4Vector& divisor, const M4Integer& modulus);
 template M4Vector PolynomialMultiplication(const M4Vector& a, const M4Vector& b);
@@ -84,3 +80,5 @@ template class Matrix<M4Vector>;
 
 CEREAL_CLASS_VERSION(M4Integer, M4Integer::SerializedVersion());
 CEREAL_CLASS_VERSION(M4Vector, M4Vector::SerializedVersion());
+
+#endif

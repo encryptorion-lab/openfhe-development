@@ -47,7 +47,7 @@ double MeasureBootstrapPrecision(uint32_t numSlots, uint32_t correctionFactor);
 double CalculateApproximationError(const std::vector<std::complex<double>>& result,
                                    const std::vector<std::complex<double>>& expectedResult) {
     if (result.size() != expectedResult.size())
-        OPENFHE_THROW(config_error, "Cannot compare vectors with different numbers of elements");
+        OPENFHE_THROW("Cannot compare vectors with different numbers of elements");
 
     // using the Euclidean norm
     double avrg = 0;
@@ -97,12 +97,12 @@ double MeasureBootstrapPrecision(uint32_t numSlots, uint32_t correctionFactor) {
     parameters.SetScalingTechnique(rescaleTech);
     parameters.SetFirstModSize(firstMod);
 
-    std::vector<uint32_t> levelBudget  = {3, 3};
-    uint32_t approxBootstrapDepth      = 9;
-    std::vector<uint32_t> bsgsDim      = {0, 0};
-    uint32_t levelsUsedBeforeBootstrap = 10;
+    std::vector<uint32_t> levelBudget      = {3, 3};
+    uint32_t approxBootstrapDepth          = 9;
+    std::vector<uint32_t> bsgsDim          = {0, 0};
+    uint32_t levelsAvailableAfterBootstrap = 10;
     usint depth =
-        levelsUsedBeforeBootstrap + FHECKKSRNS::GetBootstrapDepth(approxBootstrapDepth, levelBudget, secretKeyDist);
+        levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(approxBootstrapDepth, levelBudget, secretKeyDist);
     parameters.SetMultiplicativeDepth(depth);
 
     CryptoContext<DCRTPoly> cryptoContext = GenCryptoContext(parameters);

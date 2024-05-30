@@ -37,7 +37,14 @@ The high-level instructions for building projects that use OpenFHE are as follow
 
     cmake ..
 
+If OpenFHE is installed in a different location than the default one or you have different versions of OpenFHE installed, then you should specify the path to the desired location by running cmake with an option::
+
+    cmake .. -DCMAKE_PREFIX_PATH=/openfhe/location/path
 
 8. Run "make" to build the executable.
+
+9. In order to run the executable, add the absolute path to the location of the openfhe libraries to ``PATH``::
+
+    export PATH=$PATH:/openfhe/location/path/lib
 
 To include a specific module, e.g., core or pke, in your C++ demo, use the main header file for that module, e.g., ``openfhecore.h`` or ``openfhe.h``. Please see the demos provided for that module for more examples. If your application uses serialization, additional header files will be needed (see the demos with serialization for more details).

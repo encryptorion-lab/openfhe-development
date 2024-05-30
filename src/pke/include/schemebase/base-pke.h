@@ -71,7 +71,7 @@ public:
    * @param &privateKey private key used for decryption.
    * @return function ran correctly.
    */
-    virtual KeyPair<Element> KeyGen(CryptoContext<Element> cc, bool makeSparse);
+    virtual KeyPair<Element> KeyGenInternal(CryptoContext<Element> cc, bool makeSparse);
 
     //  virtual KeyPair<Element> KeyGen(CryptoContext<Element> cc,
     //                                    bool makeSparse,
@@ -112,7 +112,7 @@ public:
    */
     virtual DecryptResult Decrypt(ConstCiphertext<Element> ciphertext, const PrivateKey<Element> privateKey,
                                   NativePoly* plaintext) const {
-        OPENFHE_THROW(config_error, "Decryption to NativePoly is not supported");
+        OPENFHE_THROW("Decryption to NativePoly is not supported");
     }
 
     /**
@@ -125,7 +125,7 @@ public:
    */
     virtual DecryptResult Decrypt(ConstCiphertext<Element> ciphertext, const PrivateKey<Element> privateKey,
                                   Poly* plaintext) const {
-        OPENFHE_THROW(config_error, "Decryption to Poly is not supported");
+        OPENFHE_THROW("Decryption to Poly is not supported");
     }
 
     /////////////////////////////////////////
@@ -136,8 +136,7 @@ public:
                                                                    const std::shared_ptr<ParmType> params) const;
 
     virtual std::shared_ptr<std::vector<Element> > EncryptZeroCore(const PublicKey<Element> publicKey,
-                                                                   const std::shared_ptr<ParmType> params,
-                                                                   const DggType& dgg) const;
+                                                                   const std::shared_ptr<ParmType> params) const;
 
     virtual Element DecryptCore(const std::vector<Element>& cv, const PrivateKey<Element> privateKey) const;
 };

@@ -30,9 +30,9 @@
 //==================================================================================
 
 #include "UnitTestCryptoContext.h"
-#include "scheme/ckksrns/cryptocontext-ckksrns.h"
-#include "scheme/bfvrns/cryptocontext-bfvrns.h"
-#include "scheme/bgvrns/cryptocontext-bgvrns.h"
+#include "scheme/ckksrns/gen-cryptocontext-ckksrns.h"
+#include "scheme/bfvrns/gen-cryptocontext-bfvrns.h"
+#include "scheme/bgvrns/gen-cryptocontext-bgvrns.h"
 #include "gen-cryptocontext.h"
 
 using namespace lbcrypto;
@@ -133,7 +133,39 @@ CryptoContext<Element> UnitTestGenerateContext(const UnitTestCCParams& params) {
     }
 
     if (!cc)
-        OPENFHE_THROW(openfhe_error, "Error generating crypto context.");
+        OPENFHE_THROW("Error generating crypto context.");
+
+    cc->Enable(PKE);
+    cc->Enable(KEYSWITCH);
+    cc->Enable(LEVELEDSHE);
+    cc->Enable(ADVANCEDSHE);
+    cc->Enable(PRE);
+    cc->Enable(FHE);
+    cc->Enable(MULTIPARTY);
+
+    return cc;
+}
+
+//===========================================================================================================
+CryptoContext<Element> UnitTestGenerateContext(const BaseTestCase& testCase) {
+    CryptoContext<Element> cc(nullptr);
+    auto paramOverrides       = testCase.getCryptoContextParamOverrides();
+    lbcrypto::SCHEME schemeId = lbcrypto::convertToSCHEME(*paramOverrides.begin());
+    if (CKKSRNS_SCHEME == schemeId) {
+        CCParams<CryptoContextCKKSRNS> parameters(paramOverrides);
+        cc = GenCryptoContext(parameters);
+    }
+    else if (BFVRNS_SCHEME == schemeId) {
+        CCParams<CryptoContextBFVRNS> parameters(paramOverrides);
+        cc = GenCryptoContext(parameters);
+    }
+    else if (BGVRNS_SCHEME == schemeId) {
+        CCParams<CryptoContextBGVRNS> parameters(paramOverrides);
+        cc = GenCryptoContext(parameters);
+    }
+
+    if (!cc)
+        OPENFHE_THROW("Error generating crypto context.");
 
     cc->Enable(PKE);
     cc->Enable(KEYSWITCH);

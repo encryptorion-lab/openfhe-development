@@ -1,7 +1,7 @@
 //==================================================================================
 // BSD 2-Clause License
 //
-// Copyright (c) 2014-2022, NJIT, Duality Technologies Inc. and other contributors
+// Copyright (c) 2014-2023, NJIT, Duality Technologies Inc. and other contributors
 //
 // All rights reserved.
 //
@@ -63,33 +63,26 @@
  * It should be also noted that the memory requirement grows with the standard
  * deviation, therefore it is advised to use it with smaller deviations.   */
 
-#ifndef LBCRYPTO_MATH_DISCRETEGAUSSIANGENERATOR_H_
-#define LBCRYPTO_MATH_DISCRETEGAUSSIANGENERATOR_H_
+#ifndef LBCRYPTO_INC_MATH_DISCRETEGAUSSIANGENERATOR_H_
+#define LBCRYPTO_INC_MATH_DISCRETEGAUSSIANGENERATOR_H_
 
 #define _USE_MATH_DEFINES  // added for Visual Studio support
 
-#include <math.h>
+#include "math/distributiongenerator.h"
+
 #include <memory>
 #include <random>
 #include <vector>
 
-#include "math/hal.h"
-#include "math/distributiongenerator.h"
-
 namespace lbcrypto {
 
-const double KARNEY_THRESHOLD = 300;
-
-template <typename VecType>
-class DiscreteGaussianGeneratorImpl;
-
-typedef DiscreteGaussianGeneratorImpl<BigVector> DiscreteGaussianGenerator;
+constexpr double KARNEY_THRESHOLD = 300.0;
 
 /**
  * @brief The class for Discrete Gaussion Distribution generator.
  */
 template <typename VecType>
-class DiscreteGaussianGeneratorImpl : public DistributionGenerator<VecType> {
+class DiscreteGaussianGeneratorImpl {
 public:
     /**
    * @brief         Basic constructor for specifying distribution parameter and
@@ -97,12 +90,12 @@ public:
    * @param modulus The modulus to use to generate discrete values.
    * @param std     The standard deviation for this Gaussian Distribution.
    */
-    explicit DiscreteGaussianGeneratorImpl(double std = 1);
+    explicit DiscreteGaussianGeneratorImpl(double std = 1.0);
 
     /**
    * @brief Destructor
    */
-    ~DiscreteGaussianGeneratorImpl() {}
+    ~DiscreteGaussianGeneratorImpl() = default;
 
     /**
      * @brief Check if the gaussian generator has been initialized with a standard deviation
@@ -126,9 +119,6 @@ public:
    */
     void SetStd(double std);
 
-    // BigVector DiscreteGaussianGenerator::GenerateIdentity(usint size, const
-    // BigInteger &modulus);
-
     /**
    * @brief      Returns a generated signed integer. Uses Peikert's Inversion
    * Method
@@ -143,7 +133,7 @@ public:
    * @return     A pointer to an array of integer values generated with the
    * distribution.
    */
-    std::shared_ptr<int64_t> GenerateIntVector(usint size) const;
+    std::shared_ptr<int64_t> GenerateIntVector(uint32_t size) const;
 
     /**
    * @brief  Returns a generated integer. Uses Peikert's inversion method.
@@ -160,7 +150,7 @@ public:
    * @return          The vector of values within this Discrete Gaussian
    * Distribution.
    */
-    VecType GenerateVector(usint size, const typename VecType::Integer& modulus) const;
+    VecType GenerateVector(uint32_t size, const typename VecType::Integer& modulus) const;
 
     /**
    * @brief  Returns a generated integer. Uses rejection method.
@@ -201,7 +191,15 @@ public:
     static int64_t GenerateIntegerKarney(double mean, double stddev);
 
 private:
-    usint FindInVector(const std::vector<double>& S, double search) const;
+    // Gyana to add precomputation methods and data members
+    // all parameters are set as int because it is assumed that they are used for
+    // generating "small" polynomials only
+    double m_std{1.0};
+    double m_a{0.0};
+    std::vector<double> m_vals;
+    bool peikert{false};
+
+    uint32_t FindInVector(const std::vector<double>& S, double search) const;
 
     static double UnnormalizedGaussianPDF(const double& mean, const double& sigma, int32_t x) {
         return pow(M_E, -pow(x - mean, 2) / (2. * sigma * sigma));
@@ -257,19 +255,6 @@ private:
    * @return Whether the number of runs are even or not
    */
     static bool AlgorithmBDouble(PRNG& g, int32_t k, double x);
-
-    // Gyana to add precomputation methods and data members
-    // all parameters are set as int because it is assumed that they are used for
-    // generating "small" polynomials only
-    double m_a;
-
-    std::vector<double> m_vals;
-
-    /**
-   * The standard deviation of the distribution.
-   */
-    double m_std;
-    bool peikert = false;
 };
 
 }  // namespace lbcrypto

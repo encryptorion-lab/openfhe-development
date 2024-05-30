@@ -1,7 +1,7 @@
 //==================================================================================
 // BSD 2-Clause License
 //
-// Copyright (c) 2014-2022, NJIT, Duality Technologies Inc. and other contributors
+// Copyright (c) 2014-2023, NJIT, Duality Technologies Inc. and other contributors
 //
 // All rights reserved.
 //
@@ -41,30 +41,30 @@
  *    - Generator algorithm
  */
 
-#ifndef LBCRYPTO_MATH_NBTHEORY_H
-#define LBCRYPTO_MATH_NBTHEORY_H
+#ifndef LBCRYPTO_INC_MATH_NBTHEORY_H
+#define LBCRYPTO_INC_MATH_NBTHEORY_H
+
+#include "math/hal/basicint.h"
+
+#include "utils/inttypes.h"
+#include "utils/exception.h"
 
 #include <memory>
 #include <random>
 #include <set>
-#include <string>
+// #include <string>
 #include <vector>
-#include "utils/inttypes.h"
-#include "utils/exception.h"
-
-namespace {  // to define local (or C-style static) functions here
 
 #if defined(HAVE_INT128)
-inline int clz_u128(unsigned __int128 u) {
-    uint64_t hi   = u >> 64;
-    uint64_t lo   = u;
-    int retval[3] = {__builtin_clzll(hi), __builtin_clzll(lo) + 64, 128};
+namespace {  // to define local (or C-style static) functions here
 
-    int idx = !hi + ((!lo) & (!hi));
-    return retval[idx];
+inline int clz_u128(uint128_t u) {
+    uint64_t hi(u >> 64), lo(u);
+    return hi ? __builtin_clzll(hi) : lo ? __builtin_clzll(lo) + 64 : 128;
 }
-#endif
+
 };  // namespace
+#endif
 
 /**
  * @namespace lbcrypto
@@ -94,7 +94,7 @@ IntType RootOfUnity(usint m, const IntType& modulo);
  * @returns a vector of roots of unity corresponding to each modulus.
  */
 template <typename IntType>
-std::vector<IntType> RootsOfUnity(usint m, const std::vector<IntType> moduli);
+std::vector<IntType> RootsOfUnity(usint m, const std::vector<IntType>& moduli);
 
 /**
  * Method to reverse bits of num and return an unsigned int, for all bits up to
@@ -134,7 +134,6 @@ static int shift_trick[] = {0, 7, 6, 5, 4, 3, 2, 1};
 /* Function to reverse bits of num */
 inline usint ReverseBits(usint num, usint msb) {
     usint msbb = (msb >> 3) + (msb & 0x7 ? 1 : 0);
-
     switch (msbb) {
         case 1:
             return (reverse_byte((num)&0xff) >> shift_trick[msb & 0x7]);
@@ -146,14 +145,13 @@ inline usint ReverseBits(usint num, usint msb) {
             return (reverse_byte((num)&0xff) << 16 | reverse_byte((num >> 8) & 0xff) << 8 |
                     reverse_byte((num >> 16) & 0xff)) >>
                    shift_trick[msb & 0x7];
-
         case 4:
             return (reverse_byte((num)&0xff) << 24 | reverse_byte((num >> 8) & 0xff) << 16 |
                     reverse_byte((num >> 16) & 0xff) << 8 | reverse_byte((num >> 24) & 0xff)) >>
                    shift_trick[msb & 0x7];
         default:
             return -1;
-            // OPENFHE_THROW(math_error, "msbb value not handled:" +
+            // OPENFHE_THROW("msbb value not handled:" +
             // std::to_string(msbb));
     }
 }
@@ -165,48 +163,36 @@ inline usint ReverseBits(usint num, usint msb) {
  *
  * @return the index of the MSB bit location.
  */
-template <typename IntType>
-inline usint GetMSB(IntType x) {
-    OPENFHE_THROW(math_error,
-                  "Unsupported integer type (GetMSB() supports 64- and 128-bit "
-                  "integers only)");
-}
-
-template <>
-inline usint GetMSB(uint64_t x) {
-    if (x == 0)
-        return 0;
-
-        // hardware instructions for finding MSB are used are used;
+template <
+    typename T,
+    std::enable_if_t<std::is_integral_v<T> || std::is_same_v<T, int128_t> || std::is_same_v<T, uint128_t>, bool> = true>
+inline constexpr usint GetMSB(T x) {
+    if constexpr (sizeof(T) <= 8) {
+        if (x == 0)
+            return 0;
 #if defined(_MSC_VER)
-    // a wrapper for VC++
-    unsigned long msb;  // NOLINT
-    _BitScanReverse64(&msb, x);
-    return msb + 1;
+        unsigned long msb;  // NOLINT
+        _BitScanReverse64(&msb, uint64_t(x));
+        return msb + 1;
 #else
-    // a wrapper for GCC
-    return 64 - (sizeof(unsigned long) == 8 ? __builtin_clzl(x) : __builtin_clzll(x));  // NOLINT
+        // a wrapper for GCC
+        return 64 -
+               (sizeof(unsigned long) == 8 ? __builtin_clzl(uint64_t(x)) : __builtin_clzll(uint64_t(x)));  // NOLINT
 #endif
-}
-
-template <>
-inline usint GetMSB(uint32_t x) {
-    return GetMSB((uint64_t)x);
-}
-
+    }
 #if defined(HAVE_INT128)
-template <>
-inline usint GetMSB(unsigned __int128 x) {
-    if (x == 0)
-        return 0;
-
+    else if constexpr (sizeof(T) == 16) {
     #if defined(_MSC_VER)
-    static_assert(false, "MSVC doesn't support 128-bit integers");
-    #else
-    return 128 - clz_u128(x);
+        static_assert(false, "MSVC doesn't support 128-bit integers");
     #endif
-}
+        return 128 - clz_u128(uint128_t(x));
+    }
 #endif
+    else {
+        OPENFHE_THROW("Unsupported int type (GetMSB() supports 32-, 64- and 128-bit integers only)");
+        return 0;
+    }
+}
 
 /**
  * Get MSB of an unsigned 64 bit integer.
@@ -215,7 +201,7 @@ inline usint GetMSB(unsigned __int128 x) {
  *
  * @return the index of the MSB bit location.
  */
-inline usint GetMSB64(uint64_t x) {
+inline constexpr usint GetMSB64(uint64_t x) {
     return GetMSB(x);
 }
 
@@ -223,7 +209,7 @@ template <typename IntType>
 std::shared_ptr<std::vector<int64_t>> GetDigits(const IntType& u, uint64_t base, uint32_t k) {
     auto u_vec = std::make_shared<std::vector<int64_t>>(k);
 
-    size_t baseDigits = (uint32_t)(std::round(log2(base)));
+    size_t baseDigits = (uint32_t)(std::round(log2(base)));  // ?
 
     // if (!(base & (base - 1)))
     IntType uu = u;
@@ -279,43 +265,55 @@ const IntType PollardRhoFactorization(const IntType& n);
  * Recursively factorizes to find the distinct primefactors of a number.
  * @param &n the value to factorize. [note the value of n is destroyed]
  * @param &primeFactors set of factors found [must begin cleared]
- Side effects: n is destroyed.
  */
 template <typename IntType>
 void PrimeFactorize(IntType n, std::set<IntType>& primeFactors);
 
 /**
- * Finds the first prime that satisfies q = 1 mod m
+ * Finds the first prime q that satisfies q = 1 mod m with at least (nBits + 1) bits.
  *
- * @param nBits the number of bits needed to be in q.
- * @param m the the ring parameter.
+ * @param nBits the bit parameter.
+ * @param m the ring parameter (cyclotomic order).
  *
  * @return the first prime modulus.
  */
 template <typename IntType>
-IntType FirstPrime(uint64_t nBits, uint64_t m);
+IntType FirstPrime(uint32_t nBits, uint32_t m);
+
+/**
+ * Finds the max prime q that satisfies q = 1 mod m with at most nBits bits.
+ *
+ * @param nBits the bit parameter.
+ * @param m the ring parameter (cyclotomic order).
+ *
+ * @return the last prime modulus
+ */
+template <typename IntType>
+IntType LastPrime(uint32_t nBits, uint32_t m);
 
 /**
  * Finds the next prime that satisfies q = 1 mod m
  *
  * @param &q is the prime number to start from (the number itself is not
  * included)
+ * @param m the ring parameter (cyclotomic order).
  *
  * @return the next prime modulus.
  */
 template <typename IntType>
-IntType NextPrime(const IntType& q, uint64_t cyclotomicOrder);
+IntType NextPrime(const IntType& q, uint32_t m);
 
 /**
  * Finds the previous prime that satisfies q = 1 mod m
  *
  * @param &q is the prime number to start from (the number itself is not
  * included)
+ * @param m the ring parameter (cyclotomic order).
  *
  * @return the previous prime modulus.
  */
 template <typename IntType>
-IntType PreviousPrime(const IntType& q, uint64_t cyclotomicOrder);
+IntType PreviousPrime(const IntType& q, uint32_t m);
 
 /**
  * Multiplicative inverse for primitive unsigned integer data types
@@ -334,7 +332,7 @@ usint ModInverse(usint a, usint b);
  * @return Next power of 2 that is greater or equal to n.
  */
 template <typename IntType>
-IntType NextPowerOfTwo(const IntType& n);
+IntType NextPowerOfTwo(IntType n);
 
 /**
  * Returns the totient value phi of a number n.

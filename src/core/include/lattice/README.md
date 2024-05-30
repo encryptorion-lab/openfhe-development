@@ -38,13 +38,12 @@ The interactions can be summarized as:
 flowchart BT
     A[ElemParams <br> - base class </br>] --> B[ILParamsImpl <br> - Ideal Lattice Params </br>];
     B[ILParamsImpl <br> - Ideal Lattice Params </br>] --> C[ILDCRTParams <br> - Ideal Lattice Double-CRT Params</br>]
-    
+
 ```
 
 [elemparams.h](elemparams.h):
 
 - a simple class to contain ring element parameters.
-- [elemparamfactory](elemparamfactory.h) is a factory that creates `elemparams` objects
 
 [ilparams.h](ilparams.h)
 

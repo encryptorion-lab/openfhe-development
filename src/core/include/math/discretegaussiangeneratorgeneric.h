@@ -1,7 +1,7 @@
 //==================================================================================
 // BSD 2-Clause License
 //
-// Copyright (c) 2014-2022, NJIT, Duality Technologies Inc. and other contributors
+// Copyright (c) 2014-2023, NJIT, Duality Technologies Inc. and other contributors
 //
 // All rights reserved.
 //
@@ -94,23 +94,19 @@
  * sigma is the standard deviation of the base sampler and N is the smoothing
  * parameter
  *
- *
- *
  * */
 
-#ifndef LBCRYPTO_MATH_DISCRETEGAUSSIANGENERATORGENERIC_H_
-#define LBCRYPTO_MATH_DISCRETEGAUSSIANGENERATORGENERIC_H_
+#ifndef LBCRYPTO_INC_MATH_DISCRETEGAUSSIANGENERATORGENERIC_H_
+#define LBCRYPTO_INC_MATH_DISCRETEGAUSSIANGENERATORGENERIC_H_
 
 #define MAX_LEVELS 4
 
-#include <math.h>
+#include "math/distributiongenerator.h"
+
+#include <cmath>
 #include <memory>
 #include <random>
 #include <vector>
-
-#include "math/hal.h"
-#include "math/distributiongenerator.h"
-#include "math/nbtheory.h"
 
 namespace lbcrypto {
 
@@ -127,26 +123,23 @@ class BitGenerator;
  */
 class BitGenerator {
 public:
-    BitGenerator() {}
+    BitGenerator()  = default;
+    ~BitGenerator() = default;
     /*
    * @brief Method for generating a random bit
    * @return A random bit
    */
     short Generate() {  // NOLINT
-        if (counter % 31 == 0) {
-            sequence = (PseudoRandomNumberGenerator::GetPRNG())();
-            sequence = sequence << 1;
-            counter  = 0;
+        if (m_counter == 0) {
+            m_sequence = (PseudoRandomNumberGenerator::GetPRNG())();
+            m_counter  = 32;
         }
-        short bit = (sequence >> (31 - counter)) & 1;  // NOLINT
-        counter++;
-        return bit;
+        return static_cast<short>((m_sequence >> (--m_counter)) & 0x1);  // NOLINT
     }
-    ~BitGenerator() {}
 
 private:
-    uint32_t sequence = 0;
-    char counter      = 0;
+    uint32_t m_sequence{0};
+    uint32_t m_counter{0};
 };
 /*
  * @brief Class definiton for base samplers with precomputation that is used for
@@ -163,7 +156,7 @@ public:
    * @param bType Type of the base sampler
    */
     BaseSampler(double mean, double std, BitGenerator* generator, BaseSamplerType bType);
-    BaseSampler() {}
+    BaseSampler() = default;
     /*
    * @brief Method for generating integer from the base sampler
    * @return A random integer from the distribution
@@ -172,11 +165,7 @@ public:
     /*
    * @brief Destroyer for the base sampler
    */
-    virtual ~BaseSampler() {
-        /*if (DDGColumn != nullptr) {
-            delete[] DDGColumn;
-    }*/
-    }
+    virtual ~BaseSampler() = default;
     /*
    * @brief Method for generating a random bit from the bit generator within
    * @return A random bit
@@ -239,7 +228,7 @@ private:
    * @param search Searched probability value
    * @return Index that is the smallest bigger value than search
    */
-    usint FindInVector(const std::vector<double>& S, double search) const;
+    uint32_t FindInVector(const std::vector<double>& S, double search) const;
     /**
    * @brief Generates DDG tree used through the sampling in Knuth-Yao
    * @param probMatrix The probability matrix used for filling the DDG tree
@@ -274,7 +263,7 @@ private:
  * @brief Class for combining samples from two base samplers, which is used for
  * UCSD generic sampling
  */
-class SamplerCombiner : public BaseSampler {
+class SamplerCombiner final : public BaseSampler {
 public:
     /**
    * @brief Constructor
@@ -289,13 +278,13 @@ public:
    * @brief Return the combined value for two samplers with given coefficients
    * @return Combined value of the samplers with given coefficents
    */
-    int64_t GenerateInteger() {
+    int64_t GenerateInteger() override {
         return x1 * sampler1->GenerateInteger() + x2 * sampler2->GenerateInteger();
     }
     /**
    * @brief Destructor
    */
-    ~SamplerCombiner() {}
+    ~SamplerCombiner() = default;
 
 private:
     // Samplers to be combined
@@ -307,7 +296,7 @@ private:
 /**
  * @brief The class for Generic Discrete Gaussion Distribution generator.
  */
-class DiscreteGaussianGeneratorGeneric : public DistributionGenerator<BigVector> {
+class DiscreteGaussianGeneratorGeneric {
 public:
     /**
    * @brief Basic constructor which does the precomputations.
@@ -361,9 +350,10 @@ private:
    * @ return The nth bit of the number starting from 0 being the LSB
    */
     short extractBit(int64_t number, int n) {  // NOLINT
-        return (number >> n) & 1;
+        return (number >> n) & 0x1;
     }
 };
 
 }  // namespace lbcrypto
-#endif  // LBCRYPTO_MATH_DISCRETEGAUSSIANGENERATORGENERIC_H_
+
+#endif  // LBCRYPTO_INC_MATH_DISCRETEGAUSSIANGENERATORGENERIC_H_

@@ -86,27 +86,27 @@ protected:
     SCHEME schemeID;
 
 public:
-    PlaintextImpl(std::shared_ptr<Poly::Params> vp, EncodingParams ep, SCHEME schemeTag = SCHEME::INVALID_SCHEME,
+    PlaintextImpl(const std::shared_ptr<Poly::Params>& vp, EncodingParams ep, SCHEME schemeTag = SCHEME::INVALID_SCHEME,
                   bool isEncoded = false)
         : isEncoded(isEncoded),
           typeFlag(IsPoly),
-          encodingParams(ep),
+          encodingParams(std::move(ep)),
           encodedVector(vp, Format::COEFFICIENT),
           schemeID(schemeTag) {}
 
-    PlaintextImpl(std::shared_ptr<NativePoly::Params> vp, EncodingParams ep, SCHEME schemeTag = SCHEME::INVALID_SCHEME,
-                  bool isEncoded = false)
+    PlaintextImpl(const std::shared_ptr<NativePoly::Params>& vp, EncodingParams ep,
+                  SCHEME schemeTag = SCHEME::INVALID_SCHEME, bool isEncoded = false)
         : isEncoded(isEncoded),
           typeFlag(IsNativePoly),
-          encodingParams(ep),
+          encodingParams(std::move(ep)),
           encodedNativeVector(vp, Format::COEFFICIENT),
           schemeID(schemeTag) {}
 
-    PlaintextImpl(std::shared_ptr<DCRTPoly::Params> vp, EncodingParams ep, SCHEME schemeTag = SCHEME::INVALID_SCHEME,
-                  bool isEncoded = false)
+    PlaintextImpl(const std::shared_ptr<DCRTPoly::Params>& vp, EncodingParams ep,
+                  SCHEME schemeTag = SCHEME::INVALID_SCHEME, bool isEncoded = false)
         : isEncoded(isEncoded),
           typeFlag(IsDCRTPoly),
-          encodingParams(ep),
+          encodingParams(std::move(ep)),
           encodedVector(vp, Format::COEFFICIENT),
           encodedVectorDCRT(vp, Format::COEFFICIENT),
           schemeID(schemeTag) {}
@@ -124,7 +124,7 @@ public:
           slots(rhs.slots),
           schemeID(rhs.schemeID) {}
 
-    PlaintextImpl(const PlaintextImpl&& rhs)
+    PlaintextImpl(PlaintextImpl&& rhs)
         : isEncoded(rhs.isEncoded),
           typeFlag(rhs.typeFlag),
           encodingParams(std::move(rhs.encodingParams)),
@@ -251,12 +251,12 @@ public:
    */
     template <typename Element>
     Element& GetElement() {
-        OPENFHE_THROW(not_implemented_error, "Generic GetElement() is not implemented");
+        OPENFHE_THROW("Generic GetElement() is not implemented");
     }
 
     template <typename Element>
     const Element& GetElement() const {
-        OPENFHE_THROW(not_implemented_error, "Generic GetElement() is not implemented");
+        OPENFHE_THROW("Generic GetElement() is not implemented");
     }
 
     /**
@@ -292,7 +292,7 @@ public:
    * @param newSize
    */
     virtual void SetLength(size_t newSize) {
-        OPENFHE_THROW(not_implemented_error, "resize not supported");
+        OPENFHE_THROW("resize not supported");
     }
 
     /*
@@ -344,33 +344,33 @@ public:
     }
 
     virtual double GetLogError() const {
-        OPENFHE_THROW(not_available_error, "no estimate of noise available for the current scheme");
+        OPENFHE_THROW("no estimate of noise available for the current scheme");
     }
 
     virtual double GetLogPrecision() const {
-        OPENFHE_THROW(not_available_error, "no estimate of precision available for the current scheme");
+        OPENFHE_THROW("no estimate of precision available for the current scheme");
     }
 
     virtual const std::string& GetStringValue() const {
-        OPENFHE_THROW(type_error, "not a string");
+        OPENFHE_THROW("not a string");
     }
     virtual const std::vector<int64_t>& GetCoefPackedValue() const {
-        OPENFHE_THROW(type_error, "not a packed coefficient vector");
+        OPENFHE_THROW("not a packed coefficient vector");
     }
     virtual const std::vector<int64_t>& GetPackedValue() const {
-        OPENFHE_THROW(type_error, "not a packed coefficient vector");
+        OPENFHE_THROW("not a packed coefficient vector");
     }
     virtual const std::vector<std::complex<double>>& GetCKKSPackedValue() const {
-        OPENFHE_THROW(type_error, "not a packed vector of complex numbers");
+        OPENFHE_THROW("not a packed vector of complex numbers");
     }
     virtual const std::vector<double> GetRealPackedValue() const {
-        OPENFHE_THROW(type_error, "not a packed vector of real numbers");
+        OPENFHE_THROW("not a packed vector of real numbers");
     }
     virtual void SetStringValue(const std::string&) {
-        OPENFHE_THROW(type_error, "does not support a string");
+        OPENFHE_THROW("does not support a string");
     }
     virtual void SetIntVectorValue(const std::vector<int64_t>&) {
-        OPENFHE_THROW(type_error, "does not support an int vector");
+        OPENFHE_THROW("does not support an int vector");
     }
 
     /**
@@ -417,16 +417,16 @@ inline std::ostream& operator<<(std::ostream& out, const PlaintextImpl& item) {
     return out;
 }
 
-inline std::ostream& operator<<(std::ostream& out, const Plaintext item) {
+inline std::ostream& operator<<(std::ostream& out, const Plaintext& item) {
     item->PrintValue(out);
     return out;
 }
 
-inline bool operator==(const Plaintext p1, const Plaintext p2) {
+inline bool operator==(const Plaintext& p1, const Plaintext& p2) {
     return *p1 == *p2;
 }
 
-inline bool operator!=(const Plaintext p1, const Plaintext p2) {
+inline bool operator!=(const Plaintext& p1, const Plaintext& p2) {
     return *p1 != *p2;
 }
 

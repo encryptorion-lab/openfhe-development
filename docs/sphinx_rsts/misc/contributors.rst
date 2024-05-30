@@ -35,6 +35,8 @@ We gratefully acknowledge intellectual and software contributions to the library
 
 * Shai Halevi (Algorand Foundation, IBM Research)
 
+* DeokHwa Hong (Inha University)
+
 * Hamish Hunt (Intel Corporation)
 
 * Nick Genise (Duality Technologies, University of California San Diego)
@@ -49,17 +51,21 @@ We gratefully acknowledge intellectual and software contributions to the library
 
 * Kevin King (Massachusetts Institute of Technology)
 
-* Yongwoo Lee (Samsung Advanced Institute of Technology)
+* Yongwoo Lee (Samsung Advanced Institute of Technology, Inha University)
 
-* Thomas (Zeyu) Liu (Duality Technologies & Columbia University)
+* Thomas (Zeyu) Liu (Duality Technologies, Columbia University, Yale University)
 
 * Alex Malozemoff (Galois)
+
+* Sukanya Mandal
 
 * Daniele Micciancio (University of California San Diego, Duality Technologies)
 
 * Rener Oliveira (BOCOM BBM Bank)
 
 * Antonis Papadimitriou (Duality Technologies)
+
+* Carlo Pascoe (Duality Technologies)
 
 * Nishanth Pasham (New Jersey Institute of Technology)
 

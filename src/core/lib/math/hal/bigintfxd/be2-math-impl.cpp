@@ -33,19 +33,16 @@
   This file contains template instantiations for all math classes & functions using math be2
  */
 
-#include "math/hal.h"
-#include "math/binaryuniformgenerator.cpp"     // NOLINT
-#include "math/discretegaussiangenerator.cpp"  // NOLINT
-#include "math/discreteuniformgenerator.cpp"   // NOLINT
-#include "math/nbtheory.cpp"                   // NOLINT
-#include "math/ternaryuniformgenerator.cpp"    // NOLINT
+#include "config_core.h"
+#ifdef WITH_BE2
 
-namespace bigintfxd {
-
-template class ChineseRemainderTransformFTTFxd<BigVector>;
-template class ChineseRemainderTransformArbFxd<BigVector>;
-
-}  // namespace bigintfxd
+    #include "math/math-hal.h"
+    #include "math/binaryuniformgenerator-impl.h"
+    #include "math/discretegaussiangenerator-impl.h"
+    #include "math/discreteuniformgenerator-impl.h"
+    #include "math/matrix-impl.h"
+    #include "math/nbtheory-impl.h"
+    #include "math/ternaryuniformgenerator-impl.h"
 
 namespace lbcrypto {
 
@@ -55,14 +52,15 @@ template class TernaryUniformGeneratorImpl<M2Vector>;
 template class DiscreteUniformGeneratorImpl<M2Vector>;
 
 template M2Integer RootOfUnity<M2Integer>(usint m, const M2Integer& modulo);
-template std::vector<M2Integer> RootsOfUnity(usint m, const std::vector<M2Integer> moduli);
+template std::vector<M2Integer> RootsOfUnity(usint m, const std::vector<M2Integer>& moduli);
 template M2Integer GreatestCommonDivisor(const M2Integer& a, const M2Integer& b);
 template bool MillerRabinPrimalityTest(const M2Integer& p, const usint niter);
 template const M2Integer PollardRhoFactorization(const M2Integer& n);
 template void PrimeFactorize(M2Integer n, std::set<M2Integer>& primeFactors);
-template M2Integer FirstPrime(uint64_t nBits, uint64_t m);
-template M2Integer NextPrime(const M2Integer& q, uint64_t cyclotomicOrder);
-template M2Integer PreviousPrime(const M2Integer& q, uint64_t cyclotomicOrder);
+template M2Integer FirstPrime(uint32_t nBits, uint32_t m);
+template M2Integer LastPrime(uint32_t nBits, uint32_t m);
+template M2Integer NextPrime(const M2Integer& q, uint32_t m);
+template M2Integer PreviousPrime(const M2Integer& q, uint32_t m);
 template std::vector<M2Integer> GetTotientList(const M2Integer& n);
 template M2Vector PolyMod(const M2Vector& dividend, const M2Vector& divisor, const M2Integer& modulus);
 template M2Vector PolynomialMultiplication(const M2Vector& a, const M2Vector& b);
@@ -74,13 +72,6 @@ template M2Vector SyntheticPolynomialDivision(const M2Vector& dividend, const M2
 template M2Integer FindGeneratorCyclic(const M2Integer& modulo);
 template bool IsGenerator(const M2Integer& g, const M2Integer& modulo);
 template std::shared_ptr<std::vector<int64_t>> GetDigits(const M2Integer& u, uint64_t base, uint32_t k);
-}  // namespace lbcrypto
-
-#include "math/matrix.h"
-
-#include "math/matrix.cpp"  // NOLINT
-
-namespace lbcrypto {
 
 template class Matrix<M2Integer>;
 template class Matrix<M2Vector>;
@@ -89,3 +80,5 @@ template class Matrix<M2Vector>;
 
 CEREAL_CLASS_VERSION(M2Integer, M2Integer::SerializedVersion());
 CEREAL_CLASS_VERSION(M2Vector, M2Vector::SerializedVersion());
+
+#endif

@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 double CalculateApproximationError(const std::vector<std::complex<double>>& result,
                                    const std::vector<std::complex<double>>& expectedResult) {
     if (result.size() != expectedResult.size())
-        OPENFHE_THROW(config_error, "Cannot compare vectors with different numbers of elements");
+        OPENFHE_THROW("Cannot compare vectors with different numbers of elements");
 
     // using the infinity norm
     double maxError = 0;
@@ -102,13 +102,11 @@ void IterativeBootstrapExample() {
     uint32_t numIterations = 2;
 
     std::vector<uint32_t> levelBudget = {3, 3};
-    // Each extra iteration on top of 1 requires an extra level to be consumed.
-    uint32_t approxBootstrapDepth = 8 + (numIterations - 1);
-    std::vector<uint32_t> bsgsDim = {0, 0};
+    std::vector<uint32_t> bsgsDim     = {0, 0};
 
-    uint32_t levelsUsedBeforeBootstrap = 10;
+    uint32_t levelsAvailableAfterBootstrap = 10;
     usint depth =
-        levelsUsedBeforeBootstrap + FHECKKSRNS::GetBootstrapDepth(approxBootstrapDepth, levelBudget, secretKeyDist);
+        levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(levelBudget, secretKeyDist) + (numIterations - 1);
     parameters.SetMultiplicativeDepth(depth);
 
     // Generate crypto context.
@@ -186,6 +184,7 @@ void IterativeBootstrapExample() {
 
     // Output the precision of bootstrapping after two iterations. It should be approximately double the original precision.
     std::cout << "Bootstrapping precision after 2 iterations: " << precisionMultipleIterations << std::endl;
-    std::cout << "Number of levels remaining after 2 bootstrappings: " << depth - ciphertextTwoIterations->GetLevel()
+    std::cout << "Number of levels remaining after 2 bootstrappings: "
+              << depth - ciphertextTwoIterations->GetLevel() - (ciphertextTwoIterations->GetNoiseScaleDeg() - 1)
               << std::endl;
 }

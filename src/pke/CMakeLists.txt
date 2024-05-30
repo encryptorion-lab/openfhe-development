@@ -19,7 +19,7 @@ add_library (pkeobj OBJECT ${PKE_SRC_FILES})
 set_property(TARGET pkeobj PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 if( BUILD_SHARED )
-	add_dependencies(pkeobj OPENFHEcore)
+	add_dependencies(pkeobj OPENFHEcore OPENFHEbinfhe)
 	add_library (OPENFHEpke SHARED $<TARGET_OBJECTS:pkeobj>)
 	set_property(TARGET OPENFHEpke PROPERTY VERSION ${PKE_VERSION})
 	set_property(TARGET OPENFHEpke PROPERTY SOVERSION ${PKE_VERSION_MAJOR})
@@ -30,7 +30,7 @@ if( BUILD_SHARED )
 endif()
 
 if( BUILD_STATIC )
-	add_dependencies(pkeobj OPENFHEcore_static)
+	add_dependencies(pkeobj OPENFHEcore_static OPENFHEbinfhe_static)
 	add_library (OPENFHEpke_static STATIC $<TARGET_OBJECTS:pkeobj>)
 	set_property(TARGET OPENFHEpke_static PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 	install(TARGETS OPENFHEpke_static
@@ -38,20 +38,20 @@ if( BUILD_STATIC )
 		DESTINATION lib)
 endif()
 
-install(DIRECTORY include/
-	DESTINATION include/openfhe/pke)
+install(DIRECTORY include/ DESTINATION include/openfhe/pke)
+install(DIRECTORY unittest/utils/ DESTINATION include/openfhe/pke/unittest/utils FILES_MATCHING PATTERN "*.h")
 
 add_custom_target( allpke )
 
 if( BUILD_SHARED )
-	set (PKELIBS PUBLIC OPENFHEpke PUBLIC OPENFHEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
-	target_link_libraries (OPENFHEpke PUBLIC OPENFHEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
+	set (PKELIBS PUBLIC OPENFHEpke PUBLIC OPENFHEcore PUBLIC OPENFHEbinfhe ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
+	target_link_libraries (OPENFHEpke PUBLIC OPENFHEcore PUBLIC OPENFHEbinfhe ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
 	add_dependencies( allpke OPENFHEpke)
 endif()
 
 if( BUILD_STATIC )
-	set (PKELIBS ${PKELIBS} PUBLIC OPENFHEpke_static PUBLIC OPENFHEcore_static ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
-	target_link_libraries (OPENFHEpke_static PUBLIC OPENFHEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
+	set (PKELIBS ${PKELIBS} PUBLIC OPENFHEpke_static PUBLIC OPENFHEcore_static PUBLIC OPENFHEbinfhe_static ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
+	target_link_libraries (OPENFHEpke_static PUBLIC OPENFHEcore_static PUBLIC OPENFHEbinfhe_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
 	add_dependencies( allpke OPENFHEpke_static)
 endif()
 

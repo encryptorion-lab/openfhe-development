@@ -75,13 +75,10 @@ KeyPair<DCRTPoly> MultipartyBFVRNS::MultipartyKeyGen(CryptoContext<DCRTPoly> cc,
     // Public Key Generation
     DCRTPoly a(dug, elementParams, Format::EVALUATION);
     DCRTPoly e(dgg, elementParams, Format::EVALUATION);
-
-    DCRTPoly b = ns * e - a * s;
+    DCRTPoly b(ns * e - a * s);
 
     keyPair.secretKey->SetPrivateElement(std::move(s));
-
-    keyPair.publicKey->SetPublicElementAtIndex(0, std::move(b));
-    keyPair.publicKey->SetPublicElementAtIndex(1, std::move(a));
+    keyPair.publicKey->SetPublicElements(std::vector<DCRTPoly>{std::move(b), std::move(a)});
 
     return keyPair;
 }
@@ -102,7 +99,6 @@ KeyPair<DCRTPoly> MultipartyBFVRNS::MultipartyKeyGen(CryptoContext<DCRTPoly> cc,
     const auto ns = cryptoParams->GetNoiseScale();
 
     const DggType& dgg = cryptoParams->GetDiscreteGaussianGenerator();
-    DugType dug;
     TugType tug;
 
     DCRTPoly s;
@@ -114,7 +110,7 @@ KeyPair<DCRTPoly> MultipartyBFVRNS::MultipartyKeyGen(CryptoContext<DCRTPoly> cc,
             s = DCRTPoly(tug, paramsPK, Format::EVALUATION);
             break;
         case SPARSE_TERNARY:
-            s = DCRTPoly(tug, paramsPK, Format::EVALUATION, 64);
+            s = DCRTPoly(tug, paramsPK, Format::EVALUATION, 192);
             break;
         default:
             break;
@@ -135,9 +131,7 @@ KeyPair<DCRTPoly> MultipartyBFVRNS::MultipartyKeyGen(CryptoContext<DCRTPoly> cc,
     }
 
     keyPair.secretKey->SetPrivateElement(std::move(s));
-
-    keyPair.publicKey->SetPublicElementAtIndex(0, std::move(b));
-    keyPair.publicKey->SetPublicElementAtIndex(1, std::move(a));
+    keyPair.publicKey->SetPublicElements(std::vector<DCRTPoly>{std::move(b), std::move(a)});
 
     return keyPair;
 }
@@ -157,19 +151,38 @@ DecryptResult MultipartyBFVRNS::MultipartyDecryptFusion(const std::vector<Cipher
 
     b.SetFormat(Format::COEFFICIENT);
 
-    if (cryptoParams->GetMultiplicationTechnique() == HPS || cryptoParams->GetMultiplicationTechnique() == HPSPOVERQ ||
-        cryptoParams->GetMultiplicationTechnique() == HPSPOVERQLEVELED) {
-        *plaintext =
-            b.ScaleAndRound(cryptoParams->GetPlaintextModulus(), cryptoParams->GettQHatInvModqDivqModt(),
-                            cryptoParams->GettQHatInvModqDivqModtPrecon(), cryptoParams->GettQHatInvModqBDivqModt(),
-                            cryptoParams->GettQHatInvModqBDivqModtPrecon(), cryptoParams->GettQHatInvModqDivqFrac(),
-                            cryptoParams->GettQHatInvModqBDivqFrac());
+    size_t sizeQl = b.GetNumOfElements();
+
+    // use RNS procedures only if the number of RNS limbs is larger than 1
+    if (sizeQl > 1) {
+        if (cryptoParams->GetMultiplicationTechnique() == HPS ||
+            cryptoParams->GetMultiplicationTechnique() == HPSPOVERQ ||
+            cryptoParams->GetMultiplicationTechnique() == HPSPOVERQLEVELED) {
+            *plaintext =
+                b.ScaleAndRound(cryptoParams->GetPlaintextModulus(), cryptoParams->GettQHatInvModqDivqModt(),
+                                cryptoParams->GettQHatInvModqDivqModtPrecon(), cryptoParams->GettQHatInvModqBDivqModt(),
+                                cryptoParams->GettQHatInvModqBDivqModtPrecon(), cryptoParams->GettQHatInvModqDivqFrac(),
+                                cryptoParams->GettQHatInvModqBDivqFrac());
+        }
+        else {
+            *plaintext = b.ScaleAndRound(
+                cryptoParams->GetModuliQ(), cryptoParams->GetPlaintextModulus(), cryptoParams->Gettgamma(),
+                cryptoParams->GettgammaQHatInvModq(), cryptoParams->GettgammaQHatInvModqPrecon(),
+                cryptoParams->GetNegInvqModtgamma(), cryptoParams->GetNegInvqModtgammaPrecon());
+        }
     }
     else {
-        *plaintext =
-            b.ScaleAndRound(cryptoParams->GetModuliQ(), cryptoParams->GetPlaintextModulus(), cryptoParams->Gettgamma(),
-                            cryptoParams->GettgammaQHatInvModq(), cryptoParams->GettgammaQHatInvModqPrecon(),
-                            cryptoParams->GetNegInvqModtgamma(), cryptoParams->GetNegInvqModtgammaPrecon());
+        const NativeInteger t = cryptoParams->GetPlaintextModulus();
+        NativePoly element    = b.GetElementAtIndex(0);
+        const NativeInteger q = element.GetModulus();
+        element               = element.MultiplyAndRound(t, q);
+
+        // Setting the root of unity to ONE as the calculation is expensive
+        // It is assumed that no polynomial multiplications in evaluation
+        // representation are performed after this
+        element.SwitchModulus(t, 1, 0, 0);
+
+        *plaintext = element;
     }
 
     return DecryptResult(plaintext->GetLength());

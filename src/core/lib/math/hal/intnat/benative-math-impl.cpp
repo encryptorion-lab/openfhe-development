@@ -1,7 +1,7 @@
 //==================================================================================
 // BSD 2-Clause License
 //
-// Copyright (c) 2014-2022, NJIT, Duality Technologies Inc. and other contributors
+// Copyright (c) 2014-2023, NJIT, Duality Technologies Inc. and other contributors
 //
 // All rights reserved.
 //
@@ -30,18 +30,18 @@
 //==================================================================================
 
 /*
-  This file contains template instantiations for all math classes & functions using math be6
+  This file contains template instantiations for all math classes & functions using math native
  */
 
-#include "math/hal.h"
-#include "math/binaryuniformgenerator.cpp"     // NOLINT
-#include "math/discretegaussiangenerator.cpp"  // NOLINT
-#include "math/discreteuniformgenerator.cpp"   // NOLINT
-#include "math/matrix.cpp"                     // NOLINT
-#include "math/matrix.h"
-#include "math/nbtheory.cpp"                 // NOLINT
-#include "math/ternaryuniformgenerator.cpp"  // NOLINT
+#include "math/math-hal.h"
 #include "math/hal/transform.h"
+
+#include "math/binaryuniformgenerator-impl.h"
+#include "math/discretegaussiangenerator-impl.h"
+#include "math/discreteuniformgenerator-impl.h"
+#include "math/matrix-impl.h"
+#include "math/nbtheory-impl.h"
+#include "math/ternaryuniformgenerator-impl.h"
 
 namespace lbcrypto {
 
@@ -51,14 +51,15 @@ template class TernaryUniformGeneratorImpl<NativeVector>;
 template class DiscreteUniformGeneratorImpl<NativeVector>;
 
 template NativeInteger RootOfUnity<NativeInteger>(usint m, const NativeInteger& modulo);
-template std::vector<NativeInteger> RootsOfUnity(usint m, const std::vector<NativeInteger> moduli);
+template std::vector<NativeInteger> RootsOfUnity(usint m, const std::vector<NativeInteger>& moduli);
 template NativeInteger GreatestCommonDivisor(const NativeInteger& a, const NativeInteger& b);
 template bool MillerRabinPrimalityTest(const NativeInteger& p, const usint niter);
 template const NativeInteger PollardRhoFactorization(const NativeInteger& n);
 template void PrimeFactorize(NativeInteger n, std::set<NativeInteger>& primeFactors);
-template NativeInteger FirstPrime(uint64_t nBits, uint64_t m);
-template NativeInteger NextPrime(const NativeInteger& q, uint64_t cyclotomicOrder);
-template NativeInteger PreviousPrime(const NativeInteger& q, uint64_t cyclotomicOrder);
+template NativeInteger FirstPrime(uint32_t nBits, uint32_t m);
+template NativeInteger LastPrime(uint32_t nBits, uint32_t m);
+template NativeInteger NextPrime(const NativeInteger& q, uint32_t m);
+template NativeInteger PreviousPrime(const NativeInteger& q, uint32_t m);
 
 template std::vector<NativeInteger> GetTotientList(const NativeInteger& n);
 template std::vector<usint> GetTotientList(const usint& n);

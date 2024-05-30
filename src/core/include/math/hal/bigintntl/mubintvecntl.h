@@ -116,6 +116,11 @@ public:
     myVecP(myVecP<myT>&& a);
 
     myVecP(const long n, const myT& q);  // NOLINT
+    myVecP(usint n, const myT& q, const myT& v) : Vec<myT>(INIT_SIZE, n) {
+        this->SetModulus(q);
+        for (usint i{0}; i < n; ++i)
+            (*this)[i] = v;
+    }
 
     myVecP(const long n, const myT& q, std::initializer_list<std::string> rhs);  // NOLINT
     myVecP(const long n, const myT& q, std::initializer_list<uint64_t> rhs);     // NOLINT
@@ -141,13 +146,13 @@ public:
 
     // ASSIGNMENT OPERATORS
 
-    const myVecP& operator=(const myVecP& a);
-    const myVecP& operator=(myVecP&& a);
+    myVecP& operator=(const myVecP& a);
+    myVecP& operator=(myVecP&& a);
 
-    const myVecP& operator=(std::initializer_list<uint64_t> rhs);
-    const myVecP& operator=(std::initializer_list<int32_t> rhs);
-    const myVecP& operator=(std::initializer_list<std::string> rhs);
-    const myVecP& operator=(uint64_t rhs);
+    myVecP& operator=(std::initializer_list<uint64_t> rhs);
+    myVecP& operator=(std::initializer_list<int32_t> rhs);
+    myVecP& operator=(std::initializer_list<std::string> rhs);
+    myVecP& operator=(uint64_t rhs);
 
     // ACCESSORS
 
@@ -187,7 +192,7 @@ public:
     // sets modulus and the NTL init function uint64_t argument
     inline void SetModulus(const uint64_t& value) {
         if (value == 0) {
-            OPENFHE_THROW(lbcrypto::math_error, "SetModulus(uint64_t) cannot be zero");
+            OPENFHE_THROW("SetModulus(uint64_t) cannot be zero");
         }
         this->m_modulus       = myT(value);
         this->m_modulus_state = INITIALIZED;
@@ -196,7 +201,7 @@ public:
     // sets modulus and the NTL init function myT argument
     void SetModulus(const myT& value) {
         if (value == myT(0)) {
-            OPENFHE_THROW(lbcrypto::math_error, "SetModulus(myT) cannot be zero");
+            OPENFHE_THROW("SetModulus(myT) cannot be zero");
         }
         this->m_modulus       = value;
         this->m_modulus_state = INITIALIZED;
@@ -206,7 +211,7 @@ public:
     inline void SetModulus(const std::string& value) {
         this->m_modulus = myT(value);
         if (this->m_modulus == myT(0)) {
-            OPENFHE_THROW(lbcrypto::math_error, "SetModulus(string) cannot be zero");
+            OPENFHE_THROW("SetModulus(string) cannot be zero");
         }
         this->m_modulus_state = INITIALIZED;
     }
@@ -215,7 +220,7 @@ public:
     inline void SetModulus(const myVecP& value) {
         this->m_modulus = value.GetModulus();
         if (this->m_modulus == myT(0)) {
-            OPENFHE_THROW(lbcrypto::math_error, "SetModulus(myVecP) cannot be zero");
+            OPENFHE_THROW("SetModulus(myVecP) cannot be zero");
         }
         this->m_modulus_state = INITIALIZED;
     }
@@ -225,7 +230,7 @@ public:
             return (this->m_modulus);
         }
         else {
-            OPENFHE_THROW(lbcrypto::config_error, "modulus not set");
+            OPENFHE_THROW("modulus not set");
         }
     }
 
@@ -266,7 +271,7 @@ public:
    * @param &modulus is the modulus to perform on the current vector entries.
    * @return is the result of the modulus operation on current vector.
    */
-    const myVecP& ModEq(const myT& b);
+    myVecP& ModEq(const myT& b);
 
     /**
    * Scalar-to-vector modulus addition operation.
@@ -287,7 +292,7 @@ public:
    * @param &b is the scalar to perform operation with.
    * @return is the result of the modulus addition operation.
    */
-    const myVecP& ModAddEq(const myT& b) {
+    myVecP& ModAddEq(const myT& b) {
         ModulusCheck("Warning: myVecP::ModAdd");
         for (usint i = 0; i < this->GetLength(); i++) {
             this->operator[](i).ModAddEq(b, this->m_modulus);
@@ -311,7 +316,7 @@ public:
    * @param &b is the scalar to add.
    * @return is the result of the modulus addition operation.
    */
-    const myVecP& ModAddAtIndexEq(size_t i, const myT& b);
+    myVecP& ModAddAtIndexEq(size_t i, const myT& b);
 
     /**
    * Vector component wise modulus addition.
@@ -332,11 +337,17 @@ public:
    * @param &b is the vector to perform operation with.
    * @return is the result of the component wise modulus addition operation.
    */
-    const myVecP& ModAddEq(const myVecP& b) {
+    myVecP& ModAddEq(const myVecP& b) {
         ArgCheckVector(b, "myVecP ModAddEq()");
         for (usint i = 0; i < this->GetLength(); i++) {
             this->operator[](i).ModAddEq(b[i], this->m_modulus);
         }
+        return *this;
+    }
+
+    myVecP& ModAddNoCheckEq(const myVecP& b) {
+        for (usint i = 0; i < this->GetLength(); i++)
+            this->operator[](i).ModAddEq(b[i], this->m_modulus);
         return *this;
     }
 
@@ -363,7 +374,7 @@ public:
    * @param &b is the scalar to perform operation with.
    * @return is the result of the modulus subtraction operation.
    */
-    const myVecP& ModSubEq(const myT& b) {
+    myVecP& ModSubEq(const myT& b) {
         ModulusCheck("Warning: myVecP::ModSubEq");
         for (usint i = 0; i < this->GetLength(); i++) {
             this->operator[](i).ModSubEq(b, this->m_modulus);
@@ -390,7 +401,7 @@ public:
    * @param &b is the vector to perform operation with.
    * @return is the result of the component wise modulus subtraction operation.
    */
-    const myVecP& ModSubEq(const myVecP& b) {
+    myVecP& ModSubEq(const myVecP& b) {
         ArgCheckVector(b, "myVecP ModSubEq()");
         for (usint i = 0; i < this->GetLength(); i++) {
             this->operator[](i).ModSubEq(b[i], this->m_modulus);
@@ -421,7 +432,7 @@ public:
    * @param &b is the scalar to perform operation with.
    * @return is the result of the modulus multiplication operation.
    */
-    const myVecP& ModMulEq(const myT& b) {
+    myVecP& ModMulEq(const myT& b) {
         ModulusCheck("Warning: myVecP::ModMul");
         for (usint i = 0; i < this->GetLength(); i++) {
             this->operator[](i).ModMulEq(b, this->m_modulus);
@@ -450,11 +461,17 @@ public:
    * @return is the result of the component wise modulus multiplication
    * operation.
    */
-    const myVecP& ModMulEq(const myVecP& b) {
+    myVecP& ModMulEq(const myVecP& b) {
         ArgCheckVector(b, "myVecP Mul()");
         for (usint i = 0; i < this->GetLength(); i++) {
             this->operator[](i).ModMulEq(b[i], this->m_modulus);
         }
+        return (*this);
+    }
+
+    myVecP& ModMulNoCheckEq(const myVecP& b) {
+        for (usint i = 0; i < this->GetLength(); i++)
+            this->operator[](i).ModMulEq(b[i], this->m_modulus);
         return (*this);
     }
 
@@ -476,7 +493,7 @@ public:
    * @param &b is the scalar to perform operation with.
    * @return is the result of the modulus exponentiation operation.
    */
-    const myVecP& ModExpEq(const myT& b);
+    myVecP& ModExpEq(const myT& b);
 
     /**
    * Modulus inverse operation.
@@ -490,7 +507,7 @@ public:
    *
    * @return is the result of the component wise modulus inverse operation.
    */
-    const myVecP& ModInverseEq();
+    myVecP& ModInverseEq();
 
     /**
    * Modulus 2 operation, also a least significant bit.
@@ -506,7 +523,7 @@ public:
    * @return is the result of the component wise modulus 2 operation, also a
    * least significant bit.
    */
-    const myVecP& ModByTwoEq();
+    myVecP& ModByTwoEq();
 
     /**
    * Multiply and Rounding operation. Returns [x*p/q] where [] is the rounding
@@ -526,7 +543,7 @@ public:
    * @param &q is the denominator to be divided.
    * @return is the result of multiply and round operation.
    */
-    const myVecP& MultiplyAndRoundEq(const myT& p, const myT& q);
+    myVecP& MultiplyAndRoundEq(const myT& p, const myT& q);
 
     /**
    * Divide and Rounding operation. Returns [x/q] where [] is the rounding
@@ -544,7 +561,7 @@ public:
    * @param &q is the denominator to be divided.
    * @return is the result of divide and round operation.
    */
-    const myVecP& DivideAndRoundEq(const myT& q);
+    myVecP& DivideAndRoundEq(const myT& q);
 
     // OTHER FUNCTIONS
 
@@ -621,8 +638,8 @@ public:
     typename std::enable_if<!cereal::traits::is_text_archive<Archive>::value, void>::type load(
         Archive& ar, std::uint32_t const version) {
         if (version > SerializedVersion()) {
-            OPENFHE_THROW(lbcrypto::deserialize_error, "serialized object version " + std::to_string(version) +
-                                                           " is from a later version of the library");
+            OPENFHE_THROW("serialized object version " + std::to_string(version) +
+                          " is from a later version of the library");
         }
         // YSP. This was seg-faulting in MINGW
         // std::string m;
@@ -653,8 +670,8 @@ public:
     typename std::enable_if<cereal::traits::is_text_archive<Archive>::value, void>::type load(
         Archive& ar, std::uint32_t const version) {
         if (version > SerializedVersion()) {
-            OPENFHE_THROW(lbcrypto::deserialize_error, "serialized object version " + std::to_string(version) +
-                                                           " is from a later version of the library");
+            OPENFHE_THROW("serialized object version " + std::to_string(version) +
+                          " is from a later version of the library");
         }
         std::string m;
         ar(::cereal::make_nvp("m", m));
@@ -683,7 +700,7 @@ private:
     // use when argument to function is myT
     void ModulusCheck(std::string msg) const {
         if (!isModulusSet()) {
-            OPENFHE_THROW(lbcrypto::config_error, msg + " uninitialized this->modulus");
+            OPENFHE_THROW(msg + " uninitialized this->modulus");
         }
     }
 
@@ -691,13 +708,13 @@ private:
     // use when argument to function is myVecP
     void ArgCheckVector(const myVecP& b, std::string fname) const {
         if (this->m_modulus != b.m_modulus) {
-            OPENFHE_THROW(lbcrypto::math_error, fname + " modulus vector modulus vector op of different moduli");
+            OPENFHE_THROW(fname + " modulus vector modulus vector op of different moduli");
         }
         else if (!isModulusSet()) {
-            OPENFHE_THROW(lbcrypto::config_error, fname + " modulus vector modulus vector op  GARBAGE  moduli");
+            OPENFHE_THROW(fname + " modulus vector modulus vector op  GARBAGE  moduli");
         }
         else if (this->GetLength() != b.GetLength()) {
-            OPENFHE_THROW(lbcrypto::math_error, fname + " vectors of different lengths");
+            OPENFHE_THROW(fname + " vectors of different lengths");
         }
     }
 
@@ -720,10 +737,7 @@ private:
 
 protected:
     bool IndexCheck(size_t index) const {
-        if (index >= this->GetLength()) {
-            return false;
-        }
-        return true;
+        return index < this->GetLength();
     }
 };
 // template class ends

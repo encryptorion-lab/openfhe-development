@@ -169,7 +169,7 @@ constexpr usint BATCH         = 8;
 #if NATIVEINT == 128 && !defined(__EMSCRIPTEN__)
 constexpr usint SMODSIZE = 90;
 #else
-constexpr usint RING_DIM_PREC = 4096;  // for test cases with approximation error comparison only
+constexpr usint RING_DIM_PREC = 2048;  // for test cases with approximation error comparison only
 constexpr usint SMODSIZE      = 50;
 #endif
 // MIN_PRECISION_DIFF is the minimal difference expected between approximation error/precision for FLEXIBLEAUTO and FLEXIBLEAUTOEXT
@@ -590,9 +590,13 @@ class UTCKKSRNS : public ::testing::TestWithParam<TEST_CASE_UTCKKSRNS> {
 
     const double epsHigh = 0.00001;
 
+    const double factor = 1 << 25;
+
     const std::vector<std::complex<double>> vectorOfInts0_7{0, 1, 2, 3, 4, 5, 6, 7};
     const std::vector<std::complex<double>> vectorOfInts0_7_Neg{0, -1, -2, -3, -4, -5, -6, -7};
     const std::vector<std::complex<double>> vectorOfInts0_7_Add{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5};
+    const std::vector<std::complex<double>> vectorOfInts0_7_AddLargeScalar{
+        0 + factor, 1 + factor, 2 + factor, 3 + factor, 4 + factor, 5 + factor, 6 + factor, 7 + factor};
     const std::vector<std::complex<double>> vectorOfInts0_7_Sub{-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5};
     const std::vector<std::complex<double>> vectorOfInts0_7neg{0, -1, -2, -3, -4, -5, -6, -7};
     const std::vector<std::complex<double>> vectorOfInts7_0{7, 6, 5, 4, 3, 2, 1, 0};
@@ -608,7 +612,7 @@ class UTCKKSRNS : public ::testing::TestWithParam<TEST_CASE_UTCKKSRNS> {
     template <typename T>
     double CalculateApproximationError(const std::vector<std::complex<double>>& result,
                                        const std::vector<std::complex<double>>& expectedResult) {
-        OPENFHE_THROW(not_implemented_error, "CalculateApproximationError() is not implemented for this datatype");
+        OPENFHE_THROW("CalculateApproximationError() is not implemented for this datatype");
     }
 
 protected:
@@ -627,6 +631,8 @@ protected:
             Plaintext plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts0_7, 1, 0, nullptr, testData.slots);
             Plaintext plaintext1AddScalar =
                 cc->MakeCKKSPackedPlaintext(vectorOfInts0_7_Add, 1, 0, nullptr, testData.slots);
+            Plaintext plaintext1AddLargeScalar =
+                cc->MakeCKKSPackedPlaintext(vectorOfInts0_7_AddLargeScalar, 1, 0, nullptr, testData.slots);
             Plaintext plaintext1SubScalar =
                 cc->MakeCKKSPackedPlaintext(vectorOfInts0_7_Sub, 1, 0, nullptr, testData.slots);
             Plaintext negatives1 = cc->MakeCKKSPackedPlaintext(vectorOfInts0_7neg, 1, 0, nullptr, testData.slots);
@@ -734,7 +740,7 @@ protected:
             cc->Decrypt(kp.secretKey, cResult, &results);
             results->SetLength(plaintext1AddScalar->GetLength());
             checkEquality(plaintext1AddScalar->GetCKKSPackedValue(), results->GetCKKSPackedValue(), eps,
-                          failmsg + " EvalAdd Ct and Double fails");
+                          failmsg + " EvalAdd Ct and double fails");
             approximationErrors.emplace_back(CalculateApproximationError<T>(plaintext1AddScalar->GetCKKSPackedValue(),
                                                                             results->GetCKKSPackedValue()));
 
@@ -743,7 +749,7 @@ protected:
             cc->Decrypt(kp.secretKey, cResult, &results);
             results->SetLength(plaintext1SubScalar->GetLength());
             checkEquality(plaintext1SubScalar->GetCKKSPackedValue(), results->GetCKKSPackedValue(), eps,
-                          failmsg + " EvalSub Ct and Double fails");
+                          failmsg + " EvalSub Ct and double fails");
             approximationErrors.emplace_back(CalculateApproximationError<T>(plaintext1SubScalar->GetCKKSPackedValue(),
                                                                             results->GetCKKSPackedValue()));
 
@@ -764,6 +770,13 @@ protected:
                           failmsg + " EvalSub Ct and negative double fails");
             approximationErrors.emplace_back(CalculateApproximationError<T>(plaintext1AddScalar->GetCKKSPackedValue(),
                                                                             results->GetCKKSPackedValue()));
+
+            // Testing EvalAdd ciphertext + large double
+            cResult = cc->EvalAdd(ciphertext1, factor);
+            cc->Decrypt(kp.secretKey, cResult, &results);
+            results->SetLength(plaintext1AddLargeScalar->GetLength());
+            checkEquality(plaintext1AddLargeScalar->GetCKKSPackedValue(), results->GetCKKSPackedValue(), factor * eps,
+                          failmsg + " EvalAdd Ct and large double fails");
 
             // Testing EvalNegate
             cResult = cc->EvalNegate(ciphertext1);
@@ -831,6 +844,11 @@ protected:
             Plaintext plaintextNeg  = cc->MakeCKKSPackedPlaintext(vectorOfInts0_7_Neg, 1, 0, nullptr, testData.slots);
             Plaintext plaintextMult = cc->MakeCKKSPackedPlaintext(
                 std::vector<std::complex<double>>({0, 6, 10, 12, 12, 10, 6, 0}), 1, 0, nullptr, testData.slots);
+            Plaintext plaintextLarge = cc->MakeCKKSPackedPlaintext(
+                std::vector<std::complex<double>>({factor, factor, 0, 0, 0, 0, 0, 0}), 1, 0, nullptr, testData.slots);
+            Plaintext plaintextLargeMult = cc->MakeCKKSPackedPlaintext(
+                std::vector<std::complex<double>>({7 * factor, 6 * factor, 0, 0, 0, 0, 0, 0}), 1, 0, nullptr,
+                testData.slots);
 
             // Generate encryption keys
             KeyPair<Element> kp = cc->KeyGen();
@@ -841,11 +859,16 @@ protected:
             Ciphertext<Element> ciphertext1 = cc->Encrypt(kp.publicKey, plaintext1);
             Ciphertext<Element> ciphertext2 = cc->Encrypt(kp.publicKey, plaintext2);
 
+            // adding an extra multiplication so that precision tests could clearly
+            // show differences between different scaling techniques
+            ciphertext1 = cc->EvalMult(ciphertext1, 1.0);
+            cc->RescaleInPlace(ciphertext1);
+            ciphertext2 = cc->EvalMult(ciphertext2, 1.0);
+            cc->RescaleInPlace(ciphertext2);
+
             // Testing EvalMult
             Ciphertext<Element> cResult;
             Plaintext results;
-            cc->EvalMult(ciphertext1, plaintext1);
-            cc->EvalMult(ciphertext2, plaintext2);
             cResult = cc->EvalMult(ciphertext1, ciphertext2);
             cc->Decrypt(kp.secretKey, cResult, &results);
             results->SetLength(plaintextMult->GetLength());
@@ -853,6 +876,13 @@ protected:
                           failmsg + " EvalMult fails");
             approximationErrors.emplace_back(
                 CalculateApproximationError<T>(plaintextMult->GetCKKSPackedValue(), results->GetCKKSPackedValue()));
+
+            // Testing EvalMult by a large plaintext
+            cResult = cc->EvalMult(ciphertext2, plaintextLarge);
+            cc->Decrypt(kp.secretKey, cResult, &results);
+            results->SetLength(plaintextLargeMult->GetLength());
+            checkEquality(plaintextLargeMult->GetCKKSPackedValue(), results->GetCKKSPackedValue(), factor * eps,
+                          failmsg + " EvalMult by a large plaintext fails");
 
             // Testing operator*
             cResult = ciphertext1 * ciphertext2;
@@ -879,8 +909,6 @@ protected:
             results->SetLength(plaintextMult->GetLength());
             checkEquality(plaintextMult->GetCKKSPackedValue(), results->GetCKKSPackedValue(), eps,
                           failmsg + " EvalMult Ct and Pt fails");
-            approximationErrors.emplace_back(
-                CalculateApproximationError<T>(plaintextMult->GetCKKSPackedValue(), results->GetCKKSPackedValue()));
 
             // Testing EvalMult ciphertext * positive double
             cResult = cc->EvalMult(ciphertext1, 1.0);
@@ -888,8 +916,6 @@ protected:
             results->SetLength(plaintext1->GetLength());
             checkEquality(plaintext1->GetCKKSPackedValue(), results->GetCKKSPackedValue(), eps,
                           failmsg + " EvalMult Ct and positive double fails");
-            approximationErrors.emplace_back(
-                CalculateApproximationError<T>(plaintext1->GetCKKSPackedValue(), results->GetCKKSPackedValue()));
 
             // Testing EvalMult ciphertext * negative double
             cResult = cc->EvalMult(ciphertext1, -1.0);
@@ -900,8 +926,6 @@ protected:
                     << " - we get: " << results->GetCKKSPackedValue();
             checkEquality(plaintextNeg->GetCKKSPackedValue(), results->GetCKKSPackedValue(), eps,
                           failmsg + " EvalMult Ct and negative double fails; " + buffer1.str());
-            approximationErrors.emplace_back(
-                CalculateApproximationError<T>(plaintextNeg->GetCKKSPackedValue(), results->GetCKKSPackedValue()));
 
             // Testing EvalMultNoRelin ciphertext * ciphertext
             cResult = cc->EvalMultNoRelin(ciphertext1, ciphertext2);
@@ -944,13 +968,13 @@ protected:
 
         std::vector<double> lowPrecisions;
         CryptoContextFactory<DCRTPoly>::ReleaseAllContexts();
-        testDataLocal.params.scalTech = FLEXIBLEAUTO;
+        testDataLocal.params.scalTech = testDataLocal.lowerPrecisionTechnique;
         if (!UnitTest_Mult_Packed(testDataLocal, lowPrecisions, failmsg))
             return;
 
         std::vector<double> highPrecisions;
         CryptoContextFactory<DCRTPoly>::ReleaseAllContexts();
-        testDataLocal.params.scalTech = FLEXIBLEAUTOEXT;
+        testDataLocal.params.scalTech = testDataLocal.higherPrecisionTechnique;
         if (!UnitTest_Mult_Packed(testDataLocal, highPrecisions, failmsg))
             return;
 
@@ -2132,7 +2156,7 @@ template <>
 double UTCKKSRNS::CalculateApproximationError<double>(const std::vector<std::complex<double>>& result,
                                                       const std::vector<std::complex<double>>& expectedResult) {
     if (result.size() != expectedResult.size())
-        OPENFHE_THROW(config_error, "Cannot compare vectors with different numbers of elements");
+        OPENFHE_THROW("Cannot compare vectors with different numbers of elements");
 
     // using the Euclidean norm
     double avrg = 0;

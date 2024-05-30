@@ -37,8 +37,9 @@
 #define LBCRYPTO_CRYPTO_CRYPTOCONTEXTSER_H
 
 #include "cryptocontext.h"
-
-#include "utils/serial.h"
+#include "scheme/ckksrns/ckksrns-ser.h"
+#include "scheme/bgvrns/bgvrns-ser.h"
+#include "scheme/bfvrns/bfvrns-ser.h"
 
 #include <map>
 #include <memory>
@@ -50,33 +51,6 @@ CEREAL_CLASS_VERSION(lbcrypto::CryptoContextImpl<lbcrypto::DCRTPoly>,
 
 // the routines below are only instantiated if the user includes the appropriate
 // serialize-*.h file
-
-namespace lbcrypto {
-
-template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::SerializeEvalMultKey(std::ostream& ser, const ST& sertype, std::string id) {
-    std::map<std::string, std::vector<EvalKey<Element>>>* smap;
-    std::map<std::string, std::vector<EvalKey<Element>>> omap;
-
-    if (id.length() == 0) {
-        smap = &GetAllEvalMultKeys();
-    }
-    else {
-        const auto k = GetAllEvalMultKeys().find(id);
-
-        if (k == GetAllEvalMultKeys().end())
-            return false;  // no such id
-
-        smap           = &omap;
-        omap[k->first] = k->second;
-    }
-
-    Serial::Serialize(*smap, ser, sertype);
-    return true;
-}
-
-}  // namespace lbcrypto
 
 namespace lbcrypto {
 // ================================= JSON serialization/deserialization
@@ -94,14 +68,8 @@ template <typename T>
 void Deserialize(CryptoContext<T>& obj, std::istream& stream, const SerType::SERJSON&) {
     CryptoContext<T> newob;
 
-    try {
-        cereal::JSONInputArchive archive(stream);
-        archive(newob);
-    }
-    catch (std::exception& e) {
-        //    std::cout << e.what() << std::endl;
-        return;
-    }
+    cereal::JSONInputArchive archive(stream);
+    archive(newob);
 
     obj = CryptoContextFactory<T>::GetContext(newob->GetCryptoParameters(), newob->GetScheme(), newob->getSchemeId());
 }
@@ -169,14 +137,8 @@ template <typename T>
 void Deserialize(CryptoContext<T>& obj, std::istream& stream, const SerType::SERBINARY&) {
     CryptoContext<T> newob;
 
-    try {
-        cereal::PortableBinaryInputArchive archive(stream);
-        archive(newob);
-    }
-    catch (std::exception& e) {
-        //    std::cout << e.what() << std::endl;
-        return;
-    }
+    cereal::PortableBinaryInputArchive archive(stream);
+    archive(newob);
 
     obj = CryptoContextFactory<T>::GetContext(newob->GetCryptoParameters(), newob->GetScheme(), newob->getSchemeId());
 }

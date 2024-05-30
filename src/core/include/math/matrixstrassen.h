@@ -1,7 +1,7 @@
 //==================================================================================
 // BSD 2-Clause License
 //
-// Copyright (c) 2014-2022, NJIT, Duality Technologies Inc. and other contributors
+// Copyright (c) 2014-2023, NJIT, Duality Technologies Inc. and other contributors
 //
 // All rights reserved.
 //
@@ -33,14 +33,20 @@
   matrix strassen operations
  */
 
-#ifndef LBCRYPTO_MATH_MATRIXSTRASSEN_H
-#define LBCRYPTO_MATH_MATRIXSTRASSEN_H
+#ifndef LBCRYPTO_INC_MATH_MATRIXSTRASSEN_H
+#define LBCRYPTO_INC_MATH_MATRIXSTRASSEN_H
 
-#include <assert.h>
+#include "lattice/lat-hal.h"
+
+#include "utils/exception.h"
+#include "utils/parallel.h"
+
+// #include <cmath>
+#include <functional>
+// #include <iostream>
 #include <memory>
+#include <utility>
 #include <vector>
-
-#include "math/matrix.h"
 
 namespace lbcrypto {
 
@@ -63,6 +69,7 @@ public:
         : data(), rows(rows), cols(cols), allocZero(allocZero) {
         data.resize(rows);
         for (auto row = data.begin(); row != data.end(); ++row) {
+            row->reserve(cols);
             for (size_t col = 0; col < cols; ++col) {
                 row->push_back(allocZero());
             }
@@ -92,7 +99,7 @@ public:
 
     void SetSize(size_t rows, size_t cols) {
         if (this->rows != 0 || this->cols != 0) {
-            OPENFHE_THROW(not_available_error, "You cannot SetSize on a non-empty matrix");
+            OPENFHE_THROW("You cannot SetSize on a non-empty matrix");
         }
 
         this->rows = rows;
@@ -100,6 +107,7 @@ public:
 
         data.resize(rows);
         for (auto row = data.begin(); row != data.end(); ++row) {
+            row->reserve(cols);
             for (size_t col = 0; col < cols; ++col) {
                 row->push_back(allocZero());
             }
@@ -292,7 +300,7 @@ public:
    */
     inline MatrixStrassen<Element> Add(MatrixStrassen<Element> const& other) const {
         if (rows != other.rows || cols != other.cols) {
-            OPENFHE_THROW(math_error, "Addition operands have incompatible dimensions");
+            OPENFHE_THROW("Addition operands have incompatible dimensions");
         }
         MatrixStrassen<Element> result(*this);
 #pragma omp parallel for
@@ -331,7 +339,7 @@ public:
    */
     inline MatrixStrassen<Element> Sub(MatrixStrassen<Element> const& other) const {
         if (rows != other.rows || cols != other.cols) {
-            OPENFHE_THROW(math_error, "Subtraction operands have incompatible dimensions");
+            OPENFHE_THROW("Subtraction operands have incompatible dimensions");
         }
         MatrixStrassen<Element> result(allocZero, rows, other.cols);
 #pragma omp parallel for
@@ -631,4 +639,5 @@ inline MatrixStrassen<Poly> SplitInt32IntoPolyElements(MatrixStrassen<int32_t> c
 inline MatrixStrassen<Poly> SplitInt32AltIntoPolyElements(MatrixStrassen<int32_t> const& other, size_t n,
                                                           const std::shared_ptr<ILParams> params);
 }  // namespace lbcrypto
-#endif  // LBCRYPTO_MATH_MATRIXSTRASSEN_H
+
+#endif  // LBCRYPTO_INC_MATH_MATRIXSTRASSEN_H

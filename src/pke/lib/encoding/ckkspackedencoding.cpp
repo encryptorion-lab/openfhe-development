@@ -31,7 +31,18 @@
 
 #include "encoding/ckkspackedencoding.h"
 
+#include "lattice/lat-hal.h"
+
+#include "math/hal/basicint.h"
 #include "math/dftransform.h"
+
+#include "utils/exception.h"
+#include "utils/inttypes.h"
+#include "utils/utilities.h"
+
+#include <complex>
+#include <cmath>
+#include <vector>
 
 namespace lbcrypto {
 
@@ -122,7 +133,7 @@ bool CKKSPackedEncoding::Encode() {
     if (slots < inverse.size()) {
         std::string errMsg = std::string("The number of slots [") + std::to_string(slots) +
                              "] is less than the size of data [" + std::to_string(inverse.size()) + "]";
-        OPENFHE_THROW(config_error, errMsg);
+        OPENFHE_THROW(errMsg);
     }
 
     // clears all imaginary values as CKKS for complex numbers
@@ -132,7 +143,7 @@ bool CKKSPackedEncoding::Encode() {
     inverse.resize(slots);
 
     if (this->typeFlag == IsDCRTPoly) {
-        DiscreteFourierTransform::FFTSpecialInv(inverse);
+        DiscreteFourierTransform::FFTSpecialInv(inverse, ringDim * 2);
         uint64_t pBits     = encodingParams->GetPlaintextModulus();
         uint32_t precision = 52;
 
@@ -144,7 +155,7 @@ bool CKKSPackedEncoding::Encode() {
         // into (input_mantissa * 2^52) * 2^(p - 52 + input_exponent)
         // to preserve 52-bit precision of doubles
         // when converting to 128-bit numbers
-        std::vector<__int128> temp(2 * slots);
+        std::vector<int128_t> temp(2 * slots);
         for (size_t i = 0; i < slots; ++i) {
             // Check for possible overflow in llround function
             int32_t n1 = 0;
@@ -154,28 +165,28 @@ bool CKKSPackedEncoding::Encode() {
             // extract the mantissa of imaginary part and multiply it by 2^52
             double dim = static_cast<double>(std::frexp(inverse[i].imag(), &n2) * powP);
             if (is128BitOverflow(dre) || is128BitOverflow(dim)) {
-                OPENFHE_THROW(math_error, "Overflow, try to decrease scaling factor");
+                OPENFHE_THROW("Overflow, try to decrease scaling factor");
             }
 
             int64_t re64       = std::llround(dre);
             int32_t pRemaining = pCurrent + n1;
-            __int128 re        = 0;
+            int128_t re        = 0;
             if (pRemaining < 0) {
                 re = re64 >> (-pRemaining);
             }
             else {
-                __int128 pPowRemaining = ((__int128)1) << pRemaining;
+                int128_t pPowRemaining = ((int128_t)1) << pRemaining;
                 re                     = pPowRemaining * re64;
             }
 
             int64_t im64 = std::llround(dim);
             pRemaining   = pCurrent + n2;
-            __int128 im  = 0;
+            int128_t im  = 0;
             if (pRemaining < 0) {
                 im = im64 >> (-pRemaining);
             }
             else {
-                __int128 pPowRemaining = ((int64_t)1) << pRemaining;
+                int128_t pPowRemaining = ((int64_t)1) << pRemaining;
                 im                     = pPowRemaining * im64;
             }
 
@@ -183,7 +194,7 @@ bool CKKSPackedEncoding::Encode() {
             temp[i + slots] = (im < 0) ? Max128BitValue() + im : im;
 
             if (is128BitOverflow(temp[i]) || is128BitOverflow(temp[i + slots])) {
-                OPENFHE_THROW(math_error, "Overflow, try to decrease scaling factor");
+                OPENFHE_THROW("Overflow, try to decrease scaling factor");
             }
         }
 
@@ -225,7 +236,7 @@ bool CKKSPackedEncoding::Encode() {
         scalingFactor = pow(scalingFactor, noiseScaleDeg);
     }
     else {
-        OPENFHE_THROW(config_error, "Only DCRTPoly is supported for CKKS.");
+        OPENFHE_THROW("Only DCRTPoly is supported for CKKS.");
     }
 
     this->isEncoded = true;
@@ -241,7 +252,7 @@ bool CKKSPackedEncoding::Encode() {
     if (slots < inverse.size()) {
         std::string errMsg = std::string("The number of slots [") + std::to_string(slots) +
                              "] is less than the size of data [" + std::to_string(inverse.size()) + "]";
-        OPENFHE_THROW(config_error, errMsg);
+        OPENFHE_THROW(errMsg);
     }
 
     // clears all imaginary values as CKKS for complex numbers
@@ -251,24 +262,28 @@ bool CKKSPackedEncoding::Encode() {
     inverse.resize(slots);
 
     if (this->typeFlag == IsDCRTPoly) {
-        DiscreteFourierTransform::FFTSpecialInv(inverse);
+        DiscreteFourierTransform::FFTSpecialInv(inverse, ringDim * 2);
         double powP = scalingFactor;
 
         // Compute approxFactor, a value to scale down by, in case the value exceeds a 64-bit integer.
-        int32_t MAX_BITS_IN_WORD = 62;
+        int32_t MAX_BITS_IN_WORD = LargeScalingFactorConstants::MAX_BITS_IN_WORD;
 
         int32_t logc = 0;
         for (size_t i = 0; i < slots; ++i) {
             inverse[i] *= powP;
-            int32_t logci = static_cast<int32_t>(ceil(log2(abs(inverse[i].real()))));
-            if (logc < logci)
-                logc = logci;
-            logci = static_cast<int32_t>(ceil(log2(abs(inverse[i].imag()))));
-            if (logc < logci)
-                logc = logci;
+            if (inverse[i].real() != 0) {
+                int32_t logci = static_cast<int32_t>(ceil(log2(std::abs(inverse[i].real()))));
+                if (logc < logci)
+                    logc = logci;
+            }
+            if (inverse[i].imag() != 0) {
+                int32_t logci = static_cast<int32_t>(ceil(log2(std::abs(inverse[i].imag()))));
+                if (logc < logci)
+                    logc = logci;
+            }
         }
         if (logc < 0) {
-            OPENFHE_THROW(math_error, "Too small scaling factor");
+            OPENFHE_THROW("Too small scaling factor");
         }
         int32_t logValid    = (logc <= MAX_BITS_IN_WORD) ? logc : MAX_BITS_IN_WORD;
         int32_t logApprox   = logc - logValid;
@@ -294,7 +309,7 @@ bool CKKSPackedEncoding::Encode() {
                 // this to report it to the user, so they can identify
                 // large inputs.
 
-                DiscreteFourierTransform::FFTSpecial(inverse);
+                DiscreteFourierTransform::FFTSpecial(inverse, ringDim * 2);
 
                 double invLen = static_cast<double>(inverse.size());
                 double factor = 2 * M_PI * i;
@@ -335,7 +350,7 @@ bool CKKSPackedEncoding::Encode() {
                        << std::endl;
                 buffer << "Scaling factor is " << ceil(log2(powP)) << " bits " << std::endl;
                 buffer << "Scaled input is " << scaledInputSize << " bits " << std::endl;
-                OPENFHE_THROW(math_error, buffer.str());
+                OPENFHE_THROW(buffer.str());
             }
 
             int64_t re = std::llround(dre);
@@ -361,7 +376,7 @@ bool CKKSPackedEncoding::Encode() {
             moduli[i] = nativeParams[i]->GetModulus();
         }
 
-        DCRTPoly::Integer intPowP = std::llround(powP);
+        DCRTPoly::Integer intPowP(static_cast<uint64_t>(std::llround(powP)));
         std::vector<DCRTPoly::Integer> crtPowP(numTowers, intPowP);
 
         auto currPowP = crtPowP;
@@ -400,7 +415,7 @@ bool CKKSPackedEncoding::Encode() {
         scalingFactor = pow(scalingFactor, noiseScaleDeg);
     }
     else {
-        OPENFHE_THROW(config_error, "Only DCRTPoly is supported for CKKS.");
+        OPENFHE_THROW("Only DCRTPoly is supported for CKKS.");
     }
 
     this->isEncoded = true;
@@ -408,7 +423,7 @@ bool CKKSPackedEncoding::Encode() {
 }
 #endif
 
-bool CKKSPackedEncoding::Decode(size_t noiseScaleDeg, double scalingFactor, enum ScalingTechnique scalTech,
+bool CKKSPackedEncoding::Decode(size_t noiseScaleDeg, double scalingFactor, ScalingTechnique scalTech,
                                 ExecutionMode executionMode) {
     double p       = encodingParams->GetPlaintextModulus();
     double powP    = 0.0;
@@ -507,7 +522,7 @@ bool CKKSPackedEncoding::Decode(size_t noiseScaleDeg, double scalingFactor, enum
         // if stddev < sqrt{N}/4 (minimum approximation error that can be achieved)
         // if (stddev < 0.125 * std::sqrt(GetElementRingDimension())) {
         //   if (noiseScaleDeg <= 1) {
-        //    OPENFHE_THROW(math_error,
+        //    OPENFHE_THROW(
         //                   "The decryption failed because the approximation error is
         //                   " "too small. Check the protocol used. ");
         //  } else {  // noiseScaleDeg > 1 and no rescaling operations have been applied yet
@@ -517,9 +532,9 @@ bool CKKSPackedEncoding::Decode(size_t noiseScaleDeg, double scalingFactor, enum
 
         //   If less than 5 bits of precision is observed
         if (logstd > p - 5.0)
-            OPENFHE_THROW(math_error,
-                          "The decryption failed because the approximation error is "
-                          "too high. Check the parameters. ");
+            OPENFHE_THROW(
+                "The decryption failed because the approximation error is "
+                "too high. Check the parameters. ");
 
         // real values
         std::vector<std::complex<double>> realValues(slots);
@@ -554,7 +569,7 @@ bool CKKSPackedEncoding::Decode(size_t noiseScaleDeg, double scalingFactor, enum
         // Z[X + 1/X]/(X^n + 1). This would change the complexity from n*logn to
         // roughly (n/2)*log(n/2). This change should be done together with the one
         // above.
-        DiscreteFourierTransform::FFTSpecial(realValues);
+        DiscreteFourierTransform::FFTSpecial(realValues, GetElementRingDimension() * 2);
 
         // clears all imaginary values for security reasons
         for (size_t i = 0; i < realValues.size(); ++i)
@@ -591,16 +606,16 @@ void CKKSPackedEncoding::FitToNativeVector(const std::vector<int64_t>& vec, int6
 }
 
 #if NATIVEINT == 128 && !defined(__EMSCRIPTEN__)
-void CKKSPackedEncoding::FitToNativeVector(const std::vector<__int128>& vec, __int128 bigBound,
+void CKKSPackedEncoding::FitToNativeVector(const std::vector<int128_t>& vec, int128_t bigBound,
                                            NativeVector* nativeVec) const {
-    NativeInteger bigValueHf((unsigned __int128)bigBound >> 1);
+    NativeInteger bigValueHf((uint128_t)bigBound >> 1);
     NativeInteger modulus(nativeVec->GetModulus());
-    NativeInteger diff = NativeInteger((unsigned __int128)bigBound) - modulus;
+    NativeInteger diff = NativeInteger((uint128_t)bigBound) - modulus;
     uint32_t ringDim   = GetElementRingDimension();
     uint32_t dslots    = vec.size();
     uint32_t gap       = ringDim / dslots;
     for (usint i = 0; i < vec.size(); i++) {
-        NativeInteger n((unsigned __int128)vec[i]);
+        NativeInteger n((uint128_t)vec[i]);
         if (n > bigValueHf) {
             (*nativeVec)[gap * i] = n.ModSub(diff, modulus);
         }

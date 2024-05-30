@@ -29,23 +29,18 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================
 
-#include "scheme/bfvrns/cryptocontext-bfvrns.h"
+#include "cryptocontext.h"
+#include "encoding/encodings.h"
+#include "gtest/gtest.h"
 #include "gen-cryptocontext.h"
+#include "scheme/bfvrns/gen-cryptocontext-bfvrns.h"
+#include "UnitTestCCParams.h"
+#include "UnitTestCryptoContext.h"
+#include "UnitTestUtils.h"
+#include "utils/debug.h"
 
 #include <iostream>
 #include <vector>
-#include "gtest/gtest.h"
-
-#include "cryptocontext.h"
-
-#include "encoding/encodings.h"
-
-#include "utils/debug.h"
-#include "utils/parmfactory.h"
-
-#include "UnitTestUtils.h"
-#include "UnitTestCCParams.h"
-#include "UnitTestCryptoContext.h"
 
 using namespace lbcrypto;
 
@@ -59,6 +54,140 @@ protected:
 
 public:
 };
+
+void BFVrns_TestMultiplicativeDepthLimitation(MultiplicationTechnique multiplicationTechnique,
+                                              usint multiplicativeDepth) {
+    CCParams<CryptoContextBFVRNS> parameters;
+    const uint64_t ptm = 786433;
+
+    parameters.SetPlaintextModulus(ptm);
+    parameters.SetMultiplicativeDepth(multiplicativeDepth);
+
+    parameters.SetMultiplicationTechnique(multiplicationTechnique);
+
+    // For speed
+    parameters.SetSecurityLevel(SecurityLevel::HEStd_NotSet);
+    parameters.SetRingDim(32);
+
+    CryptoContext<DCRTPoly> cryptoContext = GenCryptoContext(parameters);
+    // Enable features that you wish to use
+    cryptoContext->Enable(PKE);
+    cryptoContext->Enable(KEYSWITCH);
+    cryptoContext->Enable(LEVELEDSHE);
+
+    // Initialize Public Key Containers
+    KeyPair<DCRTPoly> keyPair;
+
+    // Generate a public/private key pair
+    keyPair = cryptoContext->KeyGen();
+
+    // Generate the relinearization key
+
+    cryptoContext->EvalMultKeyGen(keyPair.secretKey);
+
+    // First plaintext vector is encoded
+    std::vector<int64_t> vectorOfInts1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+    Plaintext plaintext1               = cryptoContext->MakePackedPlaintext(vectorOfInts1);
+    // Second plaintext vector is encoded
+    std::vector<int64_t> vectorOfInts2 = {3, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+    Plaintext plaintext2               = cryptoContext->MakePackedPlaintext(vectorOfInts2);
+
+    size_t expectedResultSize =
+        (vectorOfInts1.size() < vectorOfInts2.size()) ? vectorOfInts1.size() : vectorOfInts2.size();
+    std::vector<int64_t> expectedResult(expectedResultSize);
+    for (size_t i = 0; i < expectedResultSize; ++i) {
+        expectedResult[i] = vectorOfInts1[i] * vectorOfInts2[i];
+    }
+    Plaintext expectedPlaintext = cryptoContext->MakePackedPlaintext(expectedResult);
+
+    // The encoded vectors are encrypted
+    auto ciphertext1 = cryptoContext->Encrypt(keyPair.publicKey, plaintext1);
+    auto ciphertext2 = cryptoContext->Encrypt(keyPair.publicKey, plaintext2);
+
+    // Homomorphic multiplications
+    auto ciphertextMul12 = cryptoContext->EvalMult(ciphertext1, ciphertext2);
+
+    // Decrypt the result of multiplications
+    Plaintext plaintextMultResult;
+    cryptoContext->Decrypt(keyPair.secretKey, ciphertextMul12, &plaintextMultResult);
+    plaintextMultResult->SetLength(expectedResultSize);
+    std::vector<int64_t> decvec = plaintextMultResult->GetPackedValue();
+    Plaintext dRes              = cryptoContext->MakePackedPlaintext(decvec);
+
+    EXPECT_EQ(plaintextMultResult, expectedPlaintext);
+}
+TEST_F(UTBFVRNS_CRT, BFVrns_TestMultiplicativeDepthLimitation_BEHZ) {
+    BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 32);
+    BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 33);
+    BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 34);
+
+    if (MATHBACKEND != 2) {
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 65);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 66);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 67);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 68);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 99);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 100);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 101);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 102);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 132);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 133);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 134);
+        BFVrns_TestMultiplicativeDepthLimitation(BEHZ, 135);
+    }
+}
+TEST_F(UTBFVRNS_CRT, BFVrns_TestMultiplicativeDepthLimitation_HPS) {
+    BFVrns_TestMultiplicativeDepthLimitation(HPS, 33);
+    BFVrns_TestMultiplicativeDepthLimitation(HPS, 32);
+    BFVrns_TestMultiplicativeDepthLimitation(HPS, 34);
+
+    if (MATHBACKEND != 2) {
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 65);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 66);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 67);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 68);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 99);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 100);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 101);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 102);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 132);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 133);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 134);
+        BFVrns_TestMultiplicativeDepthLimitation(HPS, 135);
+    }
+}
+TEST_F(UTBFVRNS_CRT, BFVrns_TestMultiplicativeDepthLimitation_HPSPOVERQ) {
+    BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 32);
+    BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 33);
+    BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 34);
+
+    if (MATHBACKEND != 2) {
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 65);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 66);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 67);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 68);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 99);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 100);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 134);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQ, 135);
+    }
+}
+TEST_F(UTBFVRNS_CRT, BFVrns_TestMultiplicativeDepthLimitation_HPSPOVERQLEVELED) {
+    BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 32);
+    BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 33);
+    BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 34);
+
+    if (MATHBACKEND != 2) {
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 65);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 66);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 67);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 68);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 99);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 100);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 134);
+        BFVrns_TestMultiplicativeDepthLimitation(HPSPOVERQLEVELED, 135);
+    }
+}
 
 TEST_F(UTBFVRNS_CRT, BFVrns_FastBaseConvqToBskMontgomery) {
     UnitTestCCParams parameters;
@@ -110,7 +239,7 @@ TEST_F(UTBFVRNS_CRT, BFVrns_FastBaseConvqToBskMontgomery) {
     a.SetElementAtIndex(1, poly1);
 
     a.FastBaseConvqToBskMontgomery(
-        cryptoParams->GetParamsBsk(), cryptoParams->GetModuliQ(), cryptoParams->GetModuliBsk(),
+        cryptoParams->GetParamsQBsk(), cryptoParams->GetModuliQ(), cryptoParams->GetModuliBsk(),
         cryptoParams->GetModbskBarrettMu(), cryptoParams->GetmtildeQHatInvModq(),
         cryptoParams->GetmtildeQHatInvModqPrecon(), cryptoParams->GetQHatModbsk(), cryptoParams->GetQHatModmtilde(),
         cryptoParams->GetQModbsk(), cryptoParams->GetQModbskPrecon(), cryptoParams->GetNegQInvModmtilde(),
@@ -329,7 +458,9 @@ TEST_F(UTBFVRNS_CRT, BFVrns_Mult_by_Constant) {
                      cryptoParamsBFVrns->GetalphaQlModr(), cryptoParamsBFVrns->GetModrBarrettMu(),
                      cryptoParamsBFVrns->GetqInv(), Format::EVALUATION);
 
-    Poly resultExpandedB = b.CRTInterpolate();
+    auto tmp{b};
+    tmp.SetFormat(Format::COEFFICIENT);
+    Poly resultExpandedB = tmp.CRTInterpolate();
 
     BigInteger A0 = bPoly.at(0);
 
@@ -458,7 +589,9 @@ TEST_F(UTBFVRNS_CRT, BFVrns_Mult_by_Gaussian) {
                      cryptoParamsBFVrns->GetalphaQlModr(), cryptoParamsBFVrns->GetModrBarrettMu(),
                      cryptoParamsBFVrns->GetqInv(), Format::EVALUATION);
 
-    Poly resultExpandedB = b.CRTInterpolate();
+    auto tmp{b};
+    tmp.SetFormat(Format::COEFFICIENT);
+    Poly resultExpandedB = tmp.CRTInterpolate();
 
     BigInteger A0 = bPoly.at(0);
 

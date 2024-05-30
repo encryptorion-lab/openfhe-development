@@ -1,7 +1,7 @@
 //==================================================================================
 // BSD 2-Clause License
 //
-// Copyright (c) 2014-2022, NJIT, Duality Technologies Inc. and other contributors
+// Copyright (c) 2014-2023, NJIT, Duality Technologies Inc. and other contributors
 //
 // All rights reserved.
 //
@@ -33,13 +33,18 @@
   Header for the standard values for Lattice Parms, as determined by homomorphicencryption.org
  */
 
-#ifndef SRC_CORE_LIB_LATTICE_STDLATTICEPARMS_H_
-#define SRC_CORE_LIB_LATTICE_STDLATTICEPARMS_H_
+#ifndef LBCRYPTO_INC_LATTICE_STDLATTICEPARMS_H
+#define LBCRYPTO_INC_LATTICE_STDLATTICEPARMS_H
 
+//  #include "math/math-hal.h"
+
+#include "utils/inttypes.h"
+
+#include <iosfwd>
 #include <map>
-#include <vector>
+#include <string>
 #include <utility>
-#include "math/hal.h"
+#include <vector>
 
 namespace lbcrypto {
 
@@ -64,29 +69,15 @@ enum SecurityLevel {
     HEStd_128_classic,
     HEStd_192_classic,
     HEStd_256_classic,
+    HEStd_128_quantum,
+    HEStd_192_quantum,
+    HEStd_256_quantum,
     HEStd_NotSet,
 };
 
-inline std::ostream& operator<<(std::ostream& s, SecurityLevel sl) {
-    switch (sl) {
-        case HEStd_128_classic:
-            s << "HEStd_128_classic";
-            break;
-        case HEStd_192_classic:
-            s << "HEStd_192_classic";
-            break;
-        case HEStd_256_classic:
-            s << "HEStd_256_classic";
-            break;
-        case HEStd_NotSet:
-            s << "HEStd_NotSet";
-            break;
-        default:
-            s << "UKNOWN";
-            break;
-    }
-    return s;
-}
+SecurityLevel convertToSecurityLevel(const std::string& str);
+SecurityLevel convertToSecurityLevel(uint32_t num);
+std::ostream& operator<<(std::ostream& s, SecurityLevel sl);
 
 class StdLatticeParm {
     DistributionType distType;
@@ -95,7 +86,7 @@ class StdLatticeParm {
     usint maxLogQ;
 
     // NOTE!!! the declaration below relies upon there being three possible values
-    // for the first index (the distribution type), and three possible values for
+    // for the first index (the distribution type), and six possible values for
     // the second index (the security level)
     // The values in the enums, above, meet this criteria
     // it's also important that the different values are numbered from 0-2
@@ -105,8 +96,8 @@ class StdLatticeParm {
     // will suffer MAKE SURE that the number of entries in the DistributionType
     // enum is == the first index, and MAKE SURE that the number of entries in the
     // SecurityLevel enum is == the second index
-    static std::map<usint, StdLatticeParm*> byRing[3][3];
-    static std::map<usint, StdLatticeParm*> byLogQ[3][3];
+    static std::map<usint, StdLatticeParm*> byRing[3][6];
+    static std::map<usint, StdLatticeParm*> byLogQ[3][6];
 
     static std::vector<StdLatticeParm> StandardLatticeParmSets;
     static bool initialized;
@@ -142,12 +133,14 @@ public:
 
         int distTypeIdx  = static_cast<int>(distType);
         int minSecLevIdx = static_cast<int>(minSecLev);
+        usint n          = 0;
         for (std::pair<const unsigned int, StdLatticeParm*>& it : byLogQ[distTypeIdx][minSecLevIdx]) {
             if ((curLogQ <= it.second->getMaxLogQ()) && (curLogQ > prev))
                 return it.second->getRingDim();
             prev = it.second->getMaxLogQ();
+            n    = it.second->getRingDim();
         }
-        return 65536;
+        return 2 * n;
     }
 
     DistributionType getDistType() const {
@@ -166,4 +159,4 @@ public:
 
 } /* namespace lbcrypto */
 
-#endif /* SRC_CORE_LIB_LATTICE_STDLATTICEPARMS_H_ */
+#endif

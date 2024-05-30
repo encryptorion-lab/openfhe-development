@@ -33,9 +33,13 @@
   This class provides a class for big integers
  */
 
-#include "math/hal.h"
-#include "utils/debug.h"
-#include "utils/serializable.h"
+#include "config_core.h"
+#ifdef WITH_BE2
+
+    #include "math/math-hal.h"
+
+    #include "utils/exception.h"
+    #include "utils/serializable.h"
 
 namespace bigintfxd {
 
@@ -111,7 +115,7 @@ BigIntegerFixedT<uint_type, BITLENGTH>::BigIntegerFixedT(uint64_t val) {
     }
 }
 
-#if defined(HAVE_INT128)
+    #if defined(HAVE_INT128)
 template <typename uint_type, usint BITLENGTH>
 BigIntegerFixedT<uint_type, BITLENGTH>::BigIntegerFixedT(U128BITS val) {
     m_MSB = lbcrypto::GetMSB(val);
@@ -126,7 +130,7 @@ BigIntegerFixedT<uint_type, BITLENGTH>::BigIntegerFixedT(U128BITS val) {
         this->m_value[i] = 0;
     }
 }
-#endif
+    #endif
 
 /*
 template <typename uint_type, usint BITLENGTH>
@@ -137,8 +141,7 @@ BigIntegerFixedT<uint_type, BITLENGTH>::BigIntegerFixedT(const NativeInteger &va
 // ASSIGNMENT OPERATORS
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::operator=(
-    const BigIntegerFixedT& val) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::operator=(const BigIntegerFixedT& val) {
     if (this != &val) {
         this->m_MSB = val.m_MSB;
         for (size_t i = 0; i < m_nSize; ++i) {
@@ -149,8 +152,7 @@ const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLEN
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::operator=(
-    BigIntegerFixedT&& val) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::operator=(BigIntegerFixedT&& val) {
     if (this != &val) {
         this->m_MSB = std::move(val.m_MSB);
         for (size_t i = 0; i < m_nSize; i++) {
@@ -175,7 +177,7 @@ void BigIntegerFixedT<uint_type, BITLENGTH>::SetValue(const BigIntegerFixedT& a)
 template <typename uint_type, usint BITLENGTH>
 void BigIntegerFixedT<uint_type, BITLENGTH>::SetIntAtIndex(usint idx, uint_type value) {
     if (idx >= m_nSize) {
-        OPENFHE_THROW(lbcrypto::math_error, "Index invalid");
+        OPENFHE_THROW("Index invalid");
     }
     this->m_value[idx] = value;
 }
@@ -257,7 +259,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::A
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::AddEq(const BigIntegerFixedT& b) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::AddEq(const BigIntegerFixedT& b) {
     // check for trivial conditions
     if (b.m_MSB == 0) {
         return *this;
@@ -324,7 +326,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::S
     // return 0 if b is higher than *this as there is no support for negative
     // number
     if (!(*this > b)) {
-        //    OPENFHE_THROW(lbcrypto::not_implemented_error,
+        //    OPENFHE_THROW(
         //        "there is no support if the minuend is smaller
         // than the subtrahend");
         return 0;
@@ -374,11 +376,11 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::S
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::SubEq(const BigIntegerFixedT& b) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::SubEq(const BigIntegerFixedT& b) {
     // return 0 if b is higher than *this as there is no support for negative
     // number
     if (!(*this > b)) {
-        //    OPENFHE_THROW(lbcrypto::not_implemented_error,
+        //    OPENFHE_THROW(
         //        "there is no support if the minuend is smaller
         // than the subtrahend");
         *this = BigIntegerFixedT(0);
@@ -458,7 +460,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 
 // TODO reconsider operation
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::MulEq(const BigIntegerFixedT& b) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::MulEq(const BigIntegerFixedT& b) {
     return *this = this->Mul(b);
 }
 
@@ -472,7 +474,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::D
     const BigIntegerFixedT& b) const {
     // check for trivial conditions
     if (b == 0) {
-        OPENFHE_THROW(lbcrypto::math_error, "Division by zero");
+        OPENFHE_THROW("Division by zero");
     }
     if (b > *this) {
         return 0;
@@ -572,8 +574,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::D
 
 // TODO reconsider operation
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::DividedByEq(
-    const BigIntegerFixedT& b) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::DividedByEq(const BigIntegerFixedT& b) {
     return *this = this->DividedBy(b);
 }
 
@@ -597,7 +598,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::E
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ExpEq(usint p) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ExpEq(usint p) {
     if (p == 0) {
         return *this = 1;
     }
@@ -625,7 +626,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::MultiplyAndRoundEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::MultiplyAndRoundEq(
     const BigIntegerFixedT& p, const BigIntegerFixedT& q) {
     this->MulEq(p);
     this->DivideAndRoundEq(q);
@@ -637,7 +638,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::D
     const BigIntegerFixedT& q) const {
     // check for garbage initialization and 0 condition
     if (q == 0) {
-        OPENFHE_THROW(lbcrypto::math_error, "Division by zero");
+        OPENFHE_THROW("Division by zero");
     }
     BigIntegerFixedT halfQ(q >> 1);
     if (*this < q) {
@@ -743,7 +744,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::D
 
 // TODO reconsider the method
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::DivideAndRoundEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::DivideAndRoundEq(
     const BigIntegerFixedT& q) {
     return *this = this->DivideAndRound(q);
 }
@@ -805,8 +806,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModEq(
-    const BigIntegerFixedT& modulus) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModEq(const BigIntegerFixedT& modulus) {
     // return the same value if value is less than modulus
     if (*this < modulus) {
         return *this;
@@ -905,8 +905,8 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModEq(
-    const BigIntegerFixedT& modulus, const BigIntegerFixedT& mu) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModEq(const BigIntegerFixedT& modulus,
+                                                                                      const BigIntegerFixedT& mu) {
     if (*this < modulus) {
         return *this;
     }
@@ -945,7 +945,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModAddEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModAddEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus) {
     BigIntegerFixedT bb(b);
     if (*this >= modulus) {
@@ -969,7 +969,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModAddFastEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModAddFastEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus) {
     this->AddEq(b);
     this->ModEq(modulus);
@@ -986,7 +986,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModAddEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModAddEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus, const BigIntegerFixedT& mu) {
     this->AddEq(b);
     this->ModEq(modulus, mu);
@@ -1016,7 +1016,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModSubEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModSubEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus) {
     BigIntegerFixedT b_op(b);
     if (*this >= modulus) {
@@ -1052,7 +1052,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModSubFastEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModSubFastEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus) {
     if (*this >= b) {
         this->SubEq(b);
@@ -1090,7 +1090,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModSubEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModSubEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus, const BigIntegerFixedT& mu) {
     BigIntegerFixedT b_op(b);
     // reduce this to a value lower than modulus
@@ -1128,7 +1128,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModMulEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModMulEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus) {
     BigIntegerFixedT bb(b);
     if (*this >= modulus) {
@@ -1159,7 +1159,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModMulEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModMulEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus, const BigIntegerFixedT& mu) {
     BigIntegerFixedT bb(b);
     if (*this >= modulus) {
@@ -1183,7 +1183,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModMulFastEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModMulFastEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus) {
     this->MulEq(b);
     this->ModEq(modulus);
@@ -1225,7 +1225,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModMulFastEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModMulFastEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus, const BigIntegerFixedT& mu) {
     this->MulEq(b);
     this->ModEq(modulus, mu);
@@ -1268,7 +1268,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 
 // TODO method should be reconsidered
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModExpEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModExpEq(
     const BigIntegerFixedT& b, const BigIntegerFixedT& modulus) {
     return *this = this->ModExp(b, modulus);
 }
@@ -1286,7 +1286,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
     }
 
     if (second == 0) {
-        OPENFHE_THROW(lbcrypto::math_error, "Zero does not have a ModInverse");
+        OPENFHE_THROW("Zero does not have a ModInverse");
     }
     if (second == 1) {
         return 1;
@@ -1303,8 +1303,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
     // issue is that the loop counter could would need to be an ubint.
     while (mod_back != 1) {
         if (mod_back == 0) {
-            OPENFHE_THROW(lbcrypto::math_error,
-                          this->ToString() + " does not have a ModInverse using " + modulus.ToString());
+            OPENFHE_THROW(this->ToString() + " does not have a ModInverse using " + modulus.ToString());
         }
         first  = second;
         second = mod_back;
@@ -1329,7 +1328,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::M
 
 // Extended Euclid algorithm used to find the multiplicative inverse
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModInverseEq(
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::ModInverseEq(
     const BigIntegerFixedT& modulus) {
     *this = ModInverse(modulus);
     return *this;
@@ -1348,7 +1347,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::L
         return 0;
     }
     if ((this->m_MSB + shift) > BITLENGTH) {
-        OPENFHE_THROW(lbcrypto::math_error, "shift overflow");
+        OPENFHE_THROW("shift overflow");
     }
     BigIntegerFixedT ans(*this);
 
@@ -1386,12 +1385,12 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::L
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::LShiftEq(usshort shift) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::LShiftEq(usshort shift) {
     if (this->m_MSB == 0) {
         return *this;
     }
     if (this->m_MSB + shift > BITLENGTH) {
-        OPENFHE_THROW(lbcrypto::math_error, "shift overflow");
+        OPENFHE_THROW("shift overflow");
     }
     usint shiftByUint = shift >> m_logUintBitLength;  // calculate the no.of
                                                       // shifts
@@ -1479,7 +1478,7 @@ BigIntegerFixedT<uint_type, BITLENGTH> BigIntegerFixedT<uint_type, BITLENGTH>::R
 }
 
 template <typename uint_type, usint BITLENGTH>
-const BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::RShiftEq(usshort shift) {
+BigIntegerFixedT<uint_type, BITLENGTH>& BigIntegerFixedT<uint_type, BITLENGTH>::RShiftEq(usshort shift) {
     if (this->m_MSB == 0) {
         return *this;
     }
@@ -1726,7 +1725,7 @@ void BigIntegerFixedT<uint_type, BITLENGTH>::AssignVal(const std::string& v) {
         cnt--;
         if (cnt == -1) {  // cnt = -1 indicates bitArr is ready for transfer
             if (bitValPtr < 0) {
-                OPENFHE_THROW(lbcrypto::math_error, "string " + v + " cannot fit into BigIntegerFixedT");
+                OPENFHE_THROW("string " + v + " cannot fit into BigIntegerFixedT");
             }
 
             cnt = m_uintBitLength - 1;
@@ -1741,7 +1740,7 @@ void BigIntegerFixedT<uint_type, BITLENGTH>::AssignVal(const std::string& v) {
         }
         if (zptr == arrSize && DecValue[arrSize - 1] == 0) {
             if (bitValPtr < 0) {
-                OPENFHE_THROW(lbcrypto::math_error, "string " + v + " cannot fit into BigIntegerFixedT");
+                OPENFHE_THROW("string " + v + " cannot fit into BigIntegerFixedT");
             }
             m_value[bitValPtr] = UintInBinaryToDecimal(bitArr);  // Value assignment
         }
@@ -1892,3 +1891,5 @@ void BigIntegerFixedT<uint_type, BITLENGTH>::add_bitVal(uschar* a, uschar b) {
 template class BigIntegerFixedT<integral_dtype, BigIntegerBitLength>;
 
 }  // namespace bigintfxd
+
+#endif
