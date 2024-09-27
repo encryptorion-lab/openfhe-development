@@ -48,6 +48,7 @@ using LWEPlaintextModulus = uint64_t;
 // clang-format off
 enum BINFHE_PARAMSET {
 //  NAME,                 // Description                                                     : Approximate Probability of Failure
+    T_1024_27,            // for composite NTT
     TOY,                  // no security                                                     : 2^(-360)
     MEDIUM,               // 108 bits of security for classical and 100 bits for quantum     : 2^(-70)
     STD128_AP,            // more than 128 bits of security for classical computer attacks   : 2^(-50)
