@@ -94,6 +94,14 @@ public:
         m_digitsG = static_cast<uint32_t>(std::ceil(logQ / log(static_cast<double>(m_baseG))));
         m_dgg.SetStd(std);
         PreCompute(signEval);
+
+        if (m_digitsG == 2) {
+            // composite NTT
+            if (m_Q == 18433) m_P = 12289;
+            else throw std::invalid_argument("Invalid modulus Q for composite NTT");
+            m_PQ = m_P * m_Q;
+        }
+        m_compositePolyParams = std::make_shared<ILNativeParams>(2 * N, m_PQ);
     }
 
     /**
@@ -107,6 +115,14 @@ public:
 
     const NativeInteger& GetQ() const {
         return m_Q;
+    }
+
+    const NativeInteger& GetP() const {
+        return m_P;
+    }
+
+    const NativeInteger& GetPQ() const {
+        return m_PQ;
     }
 
     const NativeInteger& Getq() const {
@@ -135,6 +151,10 @@ public:
 
     const std::shared_ptr<ILNativeParams> GetPolyParams() const {
         return m_polyParams;
+    }
+
+    const std::shared_ptr<ILNativeParams> GetCompositePolyParams() const {
+        return m_compositePolyParams;
     }
 
     const std::vector<NativeInteger>& GetGPower() const {
@@ -233,6 +253,12 @@ private:
     // modulus for the RingGSW/RingLWE scheme
     NativeInteger m_Q{};
 
+    // another modulus for the RingGSW/RingLWE scheme
+    NativeInteger m_P{};
+
+    // composite modulus for the RingGSW/RingLWE scheme
+    NativeInteger m_PQ{};
+
     // modulus for the RingLWE scheme
     NativeInteger m_q{};
 
@@ -270,6 +296,9 @@ private:
 
     // Parameters for polynomials in RingGSW/RingLWE
     std::shared_ptr<ILNativeParams> m_polyParams;
+
+    // Parameters for composite polynomials in RingGSW/RingLWE
+    std::shared_ptr<ILNativeParams> m_compositePolyParams;
 
     // Constants used in evaluating binary gates
     std::vector<NativeInteger> m_gateConst;
