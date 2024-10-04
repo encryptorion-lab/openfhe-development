@@ -72,11 +72,12 @@ public:
    * @param std standar deviation
    * @param keyDist secret key distribution
    * @param signEval flag if sign evaluation is needed
-   * @param numAutoKeys number of automorphism keys in LMKCDEY bootstrapping
+    * @param numAutoKeys number of automorphism keys in LMKCDEY bootstrapping
+    * @param compositeNTT flag if composite NTT parameter set is used
    */
     explicit RingGSWCryptoParams(uint32_t N, NativeInteger Q, NativeInteger q, uint32_t baseG, uint32_t baseR,
                                  BINFHE_METHOD method, double std, SecretKeyDist keyDist = UNIFORM_TERNARY,
-                                 bool signEval = false, uint32_t numAutoKeys = 10)
+                                 bool signEval = false, uint32_t numAutoKeys = 10, bool compositeNTT = false)
         : m_Q(Q),
           m_q(q),
           m_N(N),
@@ -95,9 +96,11 @@ public:
         m_dgg.SetStd(std);
         PreCompute(signEval);
 
-        if (m_digitsG == 2) {
-            // composite NTT
+        // composite NTT
+        if (compositeNTT) {
             if (m_Q == 18433) m_P = 12289;
+            else if (m_Q == 61441) m_P = 1038337;
+            else if (m_Q == 4188161) m_P = 268369921;
             else throw std::invalid_argument("Invalid modulus Q for composite NTT");
             m_PQ = m_P * m_Q;
             m_compositePolyParams = std::make_shared<ILNativeParams>(2 * N, m_PQ);
