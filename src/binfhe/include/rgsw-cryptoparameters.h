@@ -97,6 +97,7 @@ public:
         PreCompute(signEval);
 
         // composite NTT
+        m_compositeNTT = compositeNTT;
         if (compositeNTT) {
             if (m_Q == 18433) m_P = 12289;
             else if (m_Q == 61441) m_P = 1038337;
@@ -190,6 +191,10 @@ public:
 
     SecretKeyDist GetKeyDist() const {
         return m_keyDist;
+    }
+
+    bool IsCompositeNTT() const {
+        return m_compositeNTT;
     }
 
     bool operator==(const RingGSWCryptoParams& other) const {
@@ -318,6 +323,9 @@ private:
 
     // number of automorphism keys (used only for LMKCDEY bootstrapping)
     uint32_t m_numAutoKeys{};
+
+    // flag if composite NTT parameter set is used
+    bool m_compositeNTT{};
 };
 
 }  // namespace lbcrypto
