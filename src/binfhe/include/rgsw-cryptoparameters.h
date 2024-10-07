@@ -77,7 +77,7 @@ public:
    */
     explicit RingGSWCryptoParams(uint32_t N, NativeInteger Q, NativeInteger q, uint32_t baseG, uint32_t baseR,
                                  BINFHE_METHOD method, double std, SecretKeyDist keyDist = UNIFORM_TERNARY,
-                                 bool signEval = false, uint32_t numAutoKeys = 10, bool compositeNTT = false)
+                                 bool signEval = false, uint32_t numAutoKeys = 10, int compositeNTT = 0)
         : m_Q(Q),
           m_q(q),
           m_N(N),
@@ -102,7 +102,7 @@ public:
             if (m_Q == 18433) m_P = 12289;
             else if (m_Q == 61441) m_P = 1038337;
             else if (m_Q == 4169729) m_P = 268369921;
-            else throw std::invalid_argument("Invalid modulus Q for composite NTT");
+            else throw std::invalid_argument("Unexpected modulus Q for composite NTT");
             m_PQ = m_P * m_Q;
             m_compositePolyParams = std::make_shared<ILNativeParams>(2 * N, m_PQ);
         }
@@ -193,7 +193,7 @@ public:
         return m_keyDist;
     }
 
-    bool IsCompositeNTT() const {
+    int IsCompositeNTT() const {
         return m_compositeNTT;
     }
 
@@ -325,7 +325,7 @@ private:
     uint32_t m_numAutoKeys{};
 
     // flag if composite NTT parameter set is used
-    bool m_compositeNTT{};
+    int m_compositeNTT{};
 };
 
 }  // namespace lbcrypto

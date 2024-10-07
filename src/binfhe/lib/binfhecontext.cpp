@@ -166,7 +166,8 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, BINFHE_METHOD met
     auto lweparams = std::make_shared<LWECryptoParams>(params.latticeParam, ringDim, params.mod, Q,
                                                        (params.modKS == PRIME ? Q : params.modKS), params.stdDev,
                                                        params.baseKS, params.keyDist);
-    bool compositeNTT = (set == T_1024_29 || set == T_1024_36 || set == T_2048_50);
+    // 2: hybrid; 1: composite; 0: gadget decompose
+    int compositeNTT = (set == T_1024_29) ? 2 : ((set == T_1024_36 || set == T_2048_50) ? 1 : 0);
     auto rgswparams =
         std::make_shared<RingGSWCryptoParams>(ringDim, Q, params.mod, params.gadgetBase, params.baseRK, method,
                                               params.stdDev, params.keyDist, false, params.numAutoKeys, compositeNTT);
