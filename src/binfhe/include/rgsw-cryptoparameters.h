@@ -95,15 +95,27 @@ public:
         // composite NTT
         m_compositeNTT = compositeNTT;
         if (compositeNTT) {
-            if (m_Q == 61441) m_P = 12289;
-            else if (m_Q == 249857) m_P = 202753;
-            else if (m_Q == 33550337) m_P = 33538049;
-            else throw std::invalid_argument("Unexpected modulus Q for composite NTT");
-            m_PQ = m_P * m_Q;
+            if (m_Q == 61441)
+                m_P = 12289;
+            else if (m_Q == 249857)
+                m_P = 202753;
+            else if (m_Q == 33550337)
+                m_P = 33538049;
+            else
+                throw std::invalid_argument("Unexpected modulus Q for composite NTT");
+            m_PQ                  = m_P * m_Q;
             m_compositePolyParams = std::make_shared<ILNativeParams>(2 * N, m_PQ);
-            auto logPQ{log(m_PQ.ConvertToDouble())};
-            m_digitsG = static_cast<uint32_t>(std::ceil(logPQ / log(static_cast<double>(m_baseG))));
-        } else {
+            if (compositeNTT == 2) {
+                // hybrid
+                auto logQ{log(m_PQ.ConvertToDouble())};
+                m_digitsG = static_cast<uint32_t>(std::ceil(logQ / log(static_cast<double>(m_baseG))));
+            }
+            else {
+                auto logPQ{log(m_Q.ConvertToDouble())};
+                m_digitsG = static_cast<uint32_t>(std::ceil(logPQ / log(static_cast<double>(m_baseG))));
+            }
+        }
+        else {
             auto logQ{log(m_Q.ConvertToDouble())};
             m_digitsG = static_cast<uint32_t>(std::ceil(logQ / log(static_cast<double>(m_baseG))));
         }
