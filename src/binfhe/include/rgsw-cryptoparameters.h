@@ -95,7 +95,7 @@ public:
         // composite NTT
         m_compositeNTT = compositeNTT;
         if (compositeNTT) {
-            if (m_Q == 12289) m_P = 18433;
+            if (m_Q == 61441) m_P = 12289;
             else if (m_Q == 249857) m_P = 202753;
             else if (m_Q == 33550337) m_P = 33538049;
             else throw std::invalid_argument("Unexpected modulus Q for composite NTT");

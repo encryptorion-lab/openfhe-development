@@ -106,7 +106,7 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, BINFHE_METHOD met
     // clang-format off
     static const std::unordered_map<BINFHE_PARAMSET, BinFHEContextParams> paramsMap{
     //  { BINFHE_PARAMSET      { bits, cycOrder, latParam, modq,   modKS,  stdDev, Bks,        Bg, Brk, autoKeys,         keyDist } },
-        { T_1024_29,           {   14,     2048,      512, 1024,   16384, STD_DEV, 128,       128,  32,       10, UNIFORM_TERNARY } },
+        { T_1024_30,           {   16,     2048,      512, 1024,   16384, STD_DEV, 128,       128,  32,       10, UNIFORM_TERNARY } },
         { T_1024_36,           {   18,     2048,      512,  512,   16384, STD_DEV, 512,    262144,  32,       10, UNIFORM_TERNARY } },
         { T_2048_50,           {   25,     4096,     1024, 1024,   32768, STD_DEV,  32,  33554432,  64,       10, UNIFORM_TERNARY } },
         { TOY,                 {   27,     1024,       64,  512,   PRIME, STD_DEV,  25,       512,  23,        9, UNIFORM_TERNARY } },
@@ -167,7 +167,7 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, BINFHE_METHOD met
                                                        (params.modKS == PRIME ? Q : params.modKS), params.stdDev,
                                                        params.baseKS, params.keyDist);
     // 2: hybrid; 1: composite; 0: gadget decompose
-    int compositeNTT = (set == T_1024_29) ? 2 : ((set == T_1024_36 || set == T_2048_50) ? 1 : 0);
+    int compositeNTT = (set == T_1024_30) ? 2 : ((set == T_1024_36 || set == T_2048_50) ? 1 : 0);
     auto rgswparams =
         std::make_shared<RingGSWCryptoParams>(ringDim, Q, params.mod, params.gadgetBase, params.baseRK, method,
                                               params.stdDev, params.keyDist, false, params.numAutoKeys, compositeNTT);

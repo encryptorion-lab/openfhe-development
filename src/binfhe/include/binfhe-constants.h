@@ -48,7 +48,7 @@ using LWEPlaintextModulus = uint64_t;
 // clang-format off
 enum BINFHE_PARAMSET {
 //  NAME,                 // Description                                                     : Approximate Probability of Failure
-    T_1024_29,            // for composite NTT
+    T_1024_30,            // for composite NTT
     T_1024_36,            // for composite NTT
     T_2048_50,            // for composite NTT
     TOY,                  // no security                                                     : 2^(-360)
