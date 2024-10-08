@@ -105,14 +105,10 @@ public:
                 throw std::invalid_argument("Unexpected modulus Q for composite NTT");
             m_PQ                  = m_P * m_Q;
             m_compositePolyParams = std::make_shared<ILNativeParams>(2 * N, m_PQ);
-            auto logPQ{log(m_PQ.ConvertToDouble())};
-            m_digitsG = static_cast<uint32_t>(std::ceil(logPQ / log(static_cast<double>(m_baseG))));
-        }
-        else {
-            auto logQ{log(m_Q.ConvertToDouble())};
-            m_digitsG = static_cast<uint32_t>(std::ceil(logQ / log(static_cast<double>(m_baseG))));
         }
 
+        auto logQ{log(m_Q.ConvertToDouble())};
+        m_digitsG = static_cast<uint32_t>(std::ceil(logQ / log(static_cast<double>(m_baseG))));
         m_dgg.SetStd(std);
         PreCompute(signEval);
     }
