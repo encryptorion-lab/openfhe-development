@@ -116,8 +116,8 @@ public:
    * @param timeOptimization whether to use dynamic bootstrapping technique
    * @return creates the cryptocontext
    */
-    void GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uint32_t logQ = 11, uint32_t N = 0,
-                               BINFHE_METHOD method = GINX, bool timeOptimization = false);
+    void GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uint32_t logQ, uint32_t N,
+                               BINFHE_METHOD method, bool timeOptimization = false);
 
     /**
    * Creates a crypto context using predefined parameters sets. Recommended for
