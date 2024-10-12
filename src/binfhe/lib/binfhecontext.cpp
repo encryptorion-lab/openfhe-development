@@ -53,8 +53,6 @@ void BinFHEContext::GenerateBinFHEContext(uint32_t n, uint32_t N, const NativeIn
 
 void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uint32_t logQ, uint32_t N,
                                           BINFHE_METHOD method, bool timeOptimization) {
-    if (method != GINX)
-        OPENFHE_THROW("CGGI is the only supported method");
     if (set != STD128 && set != TOY)
         OPENFHE_THROW("STD128 and TOY are the only supported sets");
     if (logQ > 29)
