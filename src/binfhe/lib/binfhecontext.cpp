@@ -53,6 +53,8 @@ void BinFHEContext::GenerateBinFHEContext(uint32_t n, uint32_t N, const NativeIn
 
 void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uint32_t logQ, uint32_t N,
                                           BINFHE_METHOD method, bool timeOptimization) {
+    if (method != GINX)
+        OPENFHE_THROW("CGGI is the only supported method");
     if (set != STD128 && set != TOY)
         OPENFHE_THROW("STD128 and TOY are the only supported sets");
     if (logQ > 29)
@@ -60,6 +62,7 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
     if (logQ < 11)
         OPENFHE_THROW("logQ < 11 is not supported");
 
+    auto logQprime = 54;
     uint32_t baseG = 0;
     if (logQ > 25) {
         baseG = 1 << 14;
@@ -70,19 +73,23 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
     else if (logQ > 11) {
         baseG = 1 << 27;
     }
-    else {
-        baseG = 1 << 5;
+    else {  // if (logQ == 11)
+        baseG     = 1 << 5;
+        logQprime = 27;
     }
 
-    uint32_t ringDim = N;
+    // choose minimum ringD satisfying sl and Q
+    // if specified some larger N, security is also satisfied
+    auto minRingDim  = StdLatticeParm::FindRingDim(HEStd_ternary, HEStd_128_classic, logQprime);
+    uint32_t ringDim = N > minRingDim ? N : minRingDim;
 
     // find prime Q for NTT
-    auto Q = LastPrime<NativeInteger>(logQ, 2 * ringDim);
+    NativeInteger Q = LastPrime<NativeInteger>(logQprime, 2 * ringDim);
 
     // q = 2*ringDim by default for maximum plaintext space, if needed for arbitrary function evaluation, q = ringDim
     uint32_t q = arbFunc ? ringDim : 2 * ringDim;
 
-    uint64_t qKS = uint64_t(1) << logQ;
+    uint64_t qKS = uint64_t(1) << 27;
 
     uint32_t n      = (set == TOY) ? 32 : 1305;
     auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, Q, qKS, STD_DEV, 32);
