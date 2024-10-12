@@ -89,7 +89,7 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
     // q = 2*ringDim by default for maximum plaintext space, if needed for arbitrary function evaluation, q = ringDim
     uint32_t q = arbFunc ? ringDim : 2 * ringDim;
 
-    uint64_t qKS = uint64_t(1) << 27;
+    BasicInteger qKS = 1 << 27;
 
     uint32_t n      = (set == TOY) ? 32 : 1305;
     auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, Q, qKS, STD_DEV, 32);
