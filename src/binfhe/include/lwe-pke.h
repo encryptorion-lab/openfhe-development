@@ -71,6 +71,16 @@ public:
    */
     LWEPrivateKey KeyGenGaussian(usint size, const NativeInteger& modulus) const;
 
+   /**
+   * Generates a secret key of dimension n using modulus q
+   *
+   * @param size lattice parameter for the additive LWE scheme
+   * @param modulus the modulus for the secret key
+   * @return a shared pointer to the secret key
+   */
+    LWEPrivateKey KeyGenBinary(usint size, const NativeInteger& modulus) const;
+
+
     /**
    * Generates a public key of dimension N and modulus Q, secret key of dimension n using modulus q pair
    * @param params a shared pointer to LWE scheme parameters

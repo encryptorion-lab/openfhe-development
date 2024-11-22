@@ -49,16 +49,21 @@ using LWEPlaintextModulus = uint64_t;
 enum BINFHE_PARAMSET {
 //  NAME,                 // Description                                                     : Approximate Probability of Failure
     T_1024_30,            // for composite NTT
+    T_1024_30_Binary,     // for composite NTT
     T_1024_36,            // for composite NTT
+    T_1024_36_Binary,     // for composite NTT
     T_2048_50,            // for composite NTT
+    T_2048_50_Binary,     // for composite NTT
     TOY,                  // no security                                                     : 2^(-360)
     MEDIUM,               // 108 bits of security for classical and 100 bits for quantum     : 2^(-70)
     STD128_AP,            // more than 128 bits of security for classical computer attacks   : 2^(-50)
     STD128,               // more than 128 bits of security for classical computer attacks   : 2^(-40)
+    STD128_Binary,        // STD128 configured with binary secrets                           : 2^(-40)
     STD128_3,             // STD128 for 3 binary inputs                                      : 2^(-50)
     STD128_4,             // STD128 for 4 binary inputs                                      : 2^(-50)
     STD128Q,              // more than 128 bits of security for quantum attacks              : 2^(-40)
     STD128Q_3,            // STD128Q for 3 binary inputs                                     : 2^(-50)
+    STD128Q_3_Binary,     // STD128Q for 3 binary inputs                                     : 2^(-50)
     STD128Q_4,            // STD128Q for 4 binary inputs                                     : 2^(-50)
     STD192,               // more than 192 bits of security for classical computer attacks   : 2^(-40)
     STD192_3,             // STD192 for 3 binary inputs                                      : 2^(-60)
