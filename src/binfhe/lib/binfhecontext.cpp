@@ -53,7 +53,7 @@ void BinFHEContext::GenerateBinFHEContext(uint32_t n, uint32_t N, const NativeIn
 
 void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uint32_t logQ, uint32_t N,
                                           BINFHE_METHOD method, bool timeOptimization) {
-    if (set != STD128 && set != TOY)
+    if (set != STD128 && set != STD128_Binary && set != TOY)
         OPENFHE_THROW("STD128 and TOY are the only supported sets");
     if (logQ > 29)
         OPENFHE_THROW("logQ > 29 is not supported");
