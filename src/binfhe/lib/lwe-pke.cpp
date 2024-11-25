@@ -116,8 +116,8 @@ LWECiphertext LWEEncryptionScheme::Encrypt(const std::shared_ptr<LWECryptoParams
         OPENFHE_THROW(errMsg);
     }
 
-    NativeVector s = sk->GetElement();
-    uint32_t n     = s.GetLength();
+    NativeVector s   = sk->GetElement();
+    const uint32_t n = s.GetLength();
     s.SwitchModulus(mod);
 
     NativeInteger b = (m % p) * (mod / p) + params->GetDgg().GenerateInteger(mod);
@@ -127,7 +127,7 @@ LWECiphertext LWEEncryptionScheme::Encrypt(const std::shared_ptr<LWECryptoParams
 
     NativeInteger mu = mod.ComputeMu();
 
-    for (size_t i = 0; i < n; ++i) {
+    for (uint32_t i = 0; i < n; ++i) {
         b += a[i].ModMulFast(s[i], mod, mu);
     }
 
@@ -170,7 +170,7 @@ LWECiphertext LWEEncryptionScheme::EncryptN(const std::shared_ptr<LWECryptoParam
     for (size_t i = 0; i < N; ++i)
         b.ModAddFastEq(bp[i].ModMulFast(sp[i], mod, mu), mod);
 
-    auto ct = std::make_shared<LWECiphertextImpl>(std::move(a), std::move(b));
+    auto ct = std::make_shared<LWECiphertextImpl>(std::move(a), b);
     ct->SetptModulus(p);
     return ct;
 }
@@ -264,7 +264,7 @@ LWECiphertext LWEEncryptionScheme::ModSwitch(NativeInteger q, ConstLWECiphertext
     auto n = ctQ->GetLength();
     auto Q = ctQ->GetModulus();
     NativeVector a(n, q);
-    for (size_t i = 0; i < n; ++i)
+    for (uint32_t i = 0; i < n; ++i)
         a[i] = RoundqQ(ctQ->GetA()[i], q, Q);
     return std::make_shared<LWECiphertextImpl>(std::move(a), RoundqQ(ctQ->GetB(), q, Q));
 }
@@ -377,7 +377,7 @@ LWECiphertext LWEEncryptionScheme::KeySwitch(const std::shared_ptr<LWECryptoPara
                 a[k].ModSubFastEq(refAj[k], Q);
         }
     }
-    return std::make_shared<LWECiphertextImpl>(std::move(a), std::move(b));
+    return std::make_shared<LWECiphertextImpl>(std::move(a), b);
 }
 
 // noiseless LWE embedding
@@ -386,9 +386,7 @@ LWECiphertext LWEEncryptionScheme::KeySwitch(const std::shared_ptr<LWECryptoPara
 LWECiphertext LWEEncryptionScheme::NoiselessEmbedding(const std::shared_ptr<LWECryptoParams>& params,
                                                       LWEPlaintext m) const {
     NativeInteger q(params->Getq());
-    NativeInteger b(m * (q >> 2));
-    NativeVector a(params->Getn(), q);
-    return std::make_shared<LWECiphertextImpl>(std::move(a), std::move(b));
+    return std::make_shared<LWECiphertextImpl>(NativeVector(params->Getn(), q), (q >> 2)*m);
 }
 
 };  // namespace lbcrypto
