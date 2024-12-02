@@ -447,13 +447,13 @@ public:
 
 private:
     // Shared pointer to Ring GSW + LWE parameters
-    std::shared_ptr<BinFHECryptoParams> m_params{nullptr};
+    std::shared_ptr<BinFHECryptoParams> m_params=nullptr;
 
     // Shared pointer to the underlying additive LWE scheme
-    std::shared_ptr<LWEEncryptionScheme> m_LWEscheme{std::make_shared<LWEEncryptionScheme>()};
+    std::shared_ptr<LWEEncryptionScheme> m_LWEscheme=std::make_shared<LWEEncryptionScheme>();
 
     // Shared pointer to the underlying RingGSW/RLWE scheme
-    std::shared_ptr<BinFHEScheme> m_binfhescheme{nullptr};
+    std::shared_ptr<BinFHEScheme> m_binfhescheme=nullptr;
 
     // Struct containing the bootstrapping keys
     RingGSWBTKey m_BTKey = {0};
@@ -461,7 +461,7 @@ private:
     std::map<uint32_t, RingGSWBTKey> m_BTKey_map;
 
     // Whether to optimize time for sign eval
-    bool m_timeOptimization{false};
+    bool m_timeOptimization=false;
 };
 
 }  // namespace lbcrypto

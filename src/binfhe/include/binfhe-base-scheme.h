@@ -232,8 +232,8 @@ private:
                                 ConstLWECiphertext& ct, const Func f, const NativeInteger& fmod) const;
 
 protected:
-    std::shared_ptr<LWEEncryptionScheme> LWEscheme{std::make_shared<LWEEncryptionScheme>()};
-    std::shared_ptr<RingGSWAccumulator> ACCscheme{nullptr};
+    std::shared_ptr<LWEEncryptionScheme> LWEscheme=std::make_shared<LWEEncryptionScheme>();
+    std::shared_ptr<RingGSWAccumulator> ACCscheme=nullptr;
 
     /**
    * Checks type of input function

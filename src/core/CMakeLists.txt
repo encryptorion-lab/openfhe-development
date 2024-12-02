@@ -27,8 +27,8 @@ if ( BUILD_SHARED )
 	set_property(TARGET OPENFHEcore PROPERTY SOVERSION ${CORE_VERSION_MAJOR})
 	set_property(TARGET OPENFHEcore PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 	install(TARGETS OPENFHEcore
-		EXPORT OpenFHETargets
-		DESTINATION lib)
+			EXPORT OpenFHETargets
+			DESTINATION lib)
 endif()
 
 
@@ -36,24 +36,24 @@ if( BUILD_STATIC )
 	add_library (OPENFHEcore_static STATIC $<TARGET_OBJECTS:coreobj>)
 	set_property(TARGET OPENFHEcore_static PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 	install(TARGETS OPENFHEcore_static
-		EXPORT OpenFHETargets
-		DESTINATION lib)
+			EXPORT OpenFHETargets
+			DESTINATION lib)
 endif()
 
 install(DIRECTORY include/
-	DESTINATION include/openfhe/core)
+		DESTINATION include/openfhe/core)
 
 add_custom_target( allcore )
 
 if( BUILD_SHARED )
-set (CORELIBS PUBLIC OPENFHEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
-	target_link_libraries (OPENFHEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
+	set (CORELIBS PUBLIC OPENFHEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
+	target_link_libraries (OPENFHEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS} ${ADDITIONAL_LIBS})
 	add_dependencies( allcore OPENFHEcore)
 endif()
 
 if( BUILD_STATIC )
-set (CORELIBS ${CORELIBS} PUBLIC OPENFHEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
-	target_link_libraries (OPENFHEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
+	set (CORELIBS ${CORELIBS} PUBLIC OPENFHEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
+	target_link_libraries (OPENFHEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS} ${ADDITIONAL_LIBS})
 	add_dependencies( allcore OPENFHEcore_static)
 endif()
 
@@ -64,9 +64,10 @@ if( BUILD_UNITTESTS )
 		file (GLOB CORE_TEST_SRC_FILES CONFIGURE_DEPENDS unittest/*.cpp)
 	endif()
 	set (CORE_TEST_SRC_FILES ${CORE_TEST_SRC_FILES})
-	add_executable( core_tests ${CORE_TEST_SRC_FILES} ${UNITTESTMAIN} )
+	add_executable( core_tests ${CORE_TEST_SRC_FILES} ${UNITTESTMAIN}
+			lib/utils/prng/blake2engine.cpp)
 	set_property(TARGET core_tests PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/unittest)
-	target_link_libraries ( core_tests ${CORELIBS} )
+	target_link_libraries ( core_tests ${CORELIBS} ${ADDITIONAL_LIBS})
 	if (NOT ${WITH_OPENMP})
 		target_link_libraries ( core_tests PRIVATE Threads::Threads)
 	endif()
@@ -89,7 +90,7 @@ if ( BUILD_EXAMPLES )
 		add_executable ( ${exe} ${app} )
 		set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/core)
 		set( COREAPPS ${COREAPPS} ${exe} )
-		target_link_libraries ( ${exe} ${CORELIBS} )
+		target_link_libraries ( ${exe} ${CORELIBS} ${ADDITIONAL_LIBS})
 	endforeach()
 
 	add_custom_target( allcoreexamples )
@@ -105,7 +106,7 @@ if (BUILD_EXTRAS)
 		add_executable ( ${exe} ${app} )
 		set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/extras/core)
 		set( COREEXTRAS ${COREEXTRAS} ${exe} )
-		target_link_libraries ( ${exe} ${CORELIBS} )
+		target_link_libraries ( ${exe} ${CORELIBS} ${ADDITIONAL_LIBS})
 	endforeach()
 
 	add_custom_target( allcoreextras )
