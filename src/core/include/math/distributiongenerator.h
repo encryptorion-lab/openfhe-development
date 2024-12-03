@@ -49,35 +49,35 @@ namespace lbcrypto {
  * The security of Ring Learning With Errors (used for all crypto capabilities in OpenFHE) depends on
  * the randomness of uniform, ternary, and Gaussian distributions, which derive their randomness from the PRNG.
  */
-class PseudoRandomNumberGenerator {
-public:
-    /**
-    * @brief InitPRNGEngine() initializes the PRNG generator
-    * @param libPath a string with the absolute path to an external PRNG library ("/path/to/libprng.so").
-    *        If the string is empty, then the default (OpenFHE's built-in PRNG) library will be used.
-    * @note this function should be called at the beginning of main() if an external library to be used and
-    *       prints a trace in this case. There is no trace for the built-in PRNG
-    */
-    static void InitPRNGEngine(const std::string& libPath = std::string());
+    class PseudoRandomNumberGenerator {
+    public:
+        /**
+        * @brief InitPRNGEngine() initializes the PRNG generator
+        * @param libPath a string with the absolute path to an external PRNG library ("/path/to/libprng.so").
+        *        If the string is empty, then the default (OpenFHE's built-in PRNG) library will be used.
+        * @note this function should be called at the beginning of main() if an external library to be used and
+        *       prints a trace in this case. There is no trace for the built-in PRNG
+        */
+        static void InitPRNGEngine(const std::string& libPath = std::string());
 
-    /**
-     * @brief Returns a reference to the PRNG engine
-     */
-    static PRNG& GetPRNG();
+        /**
+         * @brief Returns a reference to the PRNG engine
+         */
+        static PRNG& GetPRNG();
 
-private:
-    using GenPRNGEngineFuncPtr = PRNG* (*)();
+    private:
+        using GenPRNGEngineFuncPtr = PRNG* (*)();
 
-    // shared pointer to a thread-specific PRNG engine
-    static std::shared_ptr<PRNG> m_prng;
-    // pointer to the function generating PRNG
-    static GenPRNGEngineFuncPtr genPRNGEngine;
+        // shared pointer to a thread-specific PRNG engine
+        static std::shared_ptr<PRNG> m_prng;
+        // pointer to the function generating PRNG
+        static GenPRNGEngineFuncPtr genPRNGEngine;
 
 #if !defined(FIXED_SEED)
-    // avoid contention on m_prng: local copies of m_prng are created for each thread
-    #pragma omp threadprivate(m_prng)
+        // avoid contention on m_prng: local copies of m_prng are created for each thread
+#pragma omp threadprivate(m_prng)
 #endif
-};
+    };
 
 }  // namespace lbcrypto
 
