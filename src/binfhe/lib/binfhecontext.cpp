@@ -44,7 +44,7 @@ namespace lbcrypto {
 void BinFHEContext::GenerateBinFHEContext(uint32_t n, uint32_t N, const NativeInteger& q, const NativeInteger& Q,
                                           double std, uint32_t baseKS, uint32_t baseG, uint32_t baseR,
                                           SecretKeyDist keyDist, BINFHE_METHOD method, uint32_t numAutoKeys) {
-    auto lweparams = std::make_shared<LWECryptoParams>(n, N, q, Q, Q, std, baseKS);
+    auto lweparams = std::make_shared<LWECryptoParams>(n, N, q, Q, Q, std, baseKS, keyDist);
     auto rgswparams =
         std::make_shared<RingGSWCryptoParams>(N, Q, q, baseG, baseR, method, std, keyDist, true, numAutoKeys);
     m_params       = std::make_shared<BinFHECryptoParams>(lweparams, rgswparams);
@@ -93,7 +93,7 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
 
     uint32_t n      = (set == TOY) ? 32 : 1305;
     auto keyDist = (set == STD128_Binary) ? BINARY : UNIFORM_TERNARY;
-    auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, Q, qKS, STD_DEV, 32);
+    auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, Q, qKS, STD_DEV, 32, keyDist);
     auto rgswparams = std::make_shared<RingGSWCryptoParams>(ringDim, Q, q, baseG, 23, method, STD_DEV, keyDist,
                                                             ((logQ != 11) && timeOptimization));
 
