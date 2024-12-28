@@ -92,8 +92,9 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
     uint64_t qKS = uint64_t(1) << 35;
 
     uint32_t n      = (set == TOY) ? 32 : 1305;
+    auto keyDist = (set == STD128_Binary) ? BINARY : UNIFORM_TERNARY;
     auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, Q, qKS, STD_DEV, 32);
-    auto rgswparams = std::make_shared<RingGSWCryptoParams>(ringDim, Q, q, baseG, 23, method, STD_DEV, UNIFORM_TERNARY,
+    auto rgswparams = std::make_shared<RingGSWCryptoParams>(ringDim, Q, q, baseG, 23, method, STD_DEV, keyDist,
                                                             ((logQ != 11) && timeOptimization));
 
     m_params           = std::make_shared<BinFHECryptoParams>(lweparams, rgswparams);
