@@ -67,15 +67,15 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
     uint32_t baseG = 0;
     if (logQ > 25) {
         baseG = 1 << 14;
-        qKS   = 1 << 35;
+        qKS   <<= 18;
     }
     else if (logQ > 16) {
         baseG = 1 << 18;
-        qKS   = 1 << 35;
+        qKS   <<= 18;
     }
     else if (logQ > 11) {
         baseG = 1 << 27;
-        qKS   = 1 << 35;
+        qKS   <<= 18;
     }
     else {  // if (logQ == 11)
         baseG     = 1 << 5;
