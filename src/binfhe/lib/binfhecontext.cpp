@@ -63,6 +63,7 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
         OPENFHE_THROW("logQ < 11 is not supported");
 
     auto logQprime = 54;
+    BasicInteger qKS = 1 << 35;
     uint32_t baseG = 0;
     if (logQ > 25) {
         baseG = 1 << 14;
@@ -76,6 +77,7 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
     else {  // if (logQ == 11)
         baseG     = 1 << 5;
         logQprime = 27;
+        qKS       = 1 << 17;
     }
 
     // choose minimum ringD satisfying sl and Q
@@ -88,8 +90,6 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
 
     // q = 2*ringDim by default for maximum plaintext space, if needed for arbitrary function evaluation, q = ringDim
     uint32_t q = arbFunc ? ringDim : 2 * ringDim;
-
-    uint64_t qKS = uint64_t(1) << 35;
 
     uint32_t n      = (set == TOY) ? 32 : 1305;
     auto keyDist = (set == STD128_Binary) ? BINARY : UNIFORM_TERNARY;
