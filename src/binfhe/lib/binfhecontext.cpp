@@ -63,21 +63,23 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
         OPENFHE_THROW("logQ < 11 is not supported");
 
     auto logQprime = 54;
-    BasicInteger qKS = 1 << 35;
+    BasicInteger qKS = 1 << 17;
     uint32_t baseG = 0;
     if (logQ > 25) {
         baseG = 1 << 14;
+        qKS   = 1 << 35;
     }
     else if (logQ > 16) {
         baseG = 1 << 18;
+        qKS   = 1 << 35;
     }
     else if (logQ > 11) {
         baseG = 1 << 27;
+        qKS   = 1 << 35;
     }
     else {  // if (logQ == 11)
         baseG     = 1 << 5;
         logQprime = 27;
-        qKS       = 1 << 17;
     }
 
     // choose minimum ringD satisfying sl and Q
