@@ -381,6 +381,13 @@ public:
         OPENFHE_THROW("SetSwkFC is not supported for this scheme");
     }
 
+    /**
+     * Getter for ctxtKS
+     */
+    virtual Ciphertext<Element> GetctxtKS() {
+        OPENFHE_THROW("GetctxtKS is not supported for this scheme");
+    }
+
     /////////////////////////////////////
     // SERIALIZATION
     /////////////////////////////////////

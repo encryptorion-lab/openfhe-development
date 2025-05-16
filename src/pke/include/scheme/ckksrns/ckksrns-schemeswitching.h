@@ -132,6 +132,9 @@ public:
     void SetSwkFC(Ciphertext<DCRTPoly> FHEWtoCKKSswk) override {
         m_FHEWtoCKKSswk = FHEWtoCKKSswk;
     }
+    Ciphertext<DCRTPoly> GetctxtKS() override {
+        return m_ctxtKS;
+    }
     uint32_t GetNumCtxtsToSwitch() {
         return m_numCtxts;
     }

@@ -1537,6 +1537,11 @@ public:
         m_SchemeSwitch->SetSwkFC(FHEWtoCKKSswk);
     }
 
+    Ciphertext<Element> GetctxtKS() {
+        VerifySchemeSwitchEnabled(__func__);
+        return m_SchemeSwitch->GetctxtKS();
+    }
+
     template <class Archive>
     void save(Archive& ar, std::uint32_t const version) const {
         // TODO (dsuponit): should we serialize all feature pointers???

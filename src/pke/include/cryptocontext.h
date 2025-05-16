@@ -3656,6 +3656,12 @@ public:
         GetScheme()->SetSwkFC(FHEWtoCKKSswk);
     }
 
+    /* Getter for ctxtKS
+    */
+    Ciphertext<Element> GetctxtKS() {
+        return GetScheme()->GetctxtKS();
+    }
+
     /**
      * @brief GetExistingEvalAutomorphismKeyIndices gets indices for all existing automorphism keys
      * @param keyTag map search id for the automorphism keys
