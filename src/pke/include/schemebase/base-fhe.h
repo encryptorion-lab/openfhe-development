@@ -365,6 +365,16 @@ public:
     }
 
     /**
+     * Getter and setter for the switching key between CKKS to FHEW
+    */
+    virtual Ciphertext<Element> GetSwkCF() {
+        OPENFHE_THROW("GetSwkCF is not supported for this scheme");
+    }
+    virtual void SetSwkCF(Ciphertext<Element> CKKStoFHEWswk) {
+        OPENFHE_THROW("SetSwkCF is not supported for this scheme");
+    }
+
+    /**
      * Getter and setter for the switching key between FHEW to CKKS
     */
     virtual Ciphertext<Element> GetSwkFC() {

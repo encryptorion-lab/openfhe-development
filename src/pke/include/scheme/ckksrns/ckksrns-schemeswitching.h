@@ -123,6 +123,12 @@ public:
     void SetBinCCForSchemeSwitch(std::shared_ptr<lbcrypto::BinFHEContext> ccLWE) override {
         m_ccLWE = ccLWE;
     }
+    Ciphertext<DCRTPoly> GetSwkCF() override {
+        return m_CKKStoFHEWswk;
+    }
+    void SetSwkCF(Ciphertext<DCRTPoly> CKKStoFHEWswk) override {
+        m_CKKStoFHEWswk = CKKStoFHEWswk;
+    }
     Ciphertext<DCRTPoly> GetSwkFC() override {
         return m_FHEWtoCKKSswk;
     }

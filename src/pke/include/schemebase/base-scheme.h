@@ -1523,6 +1523,15 @@ public:
         m_SchemeSwitch->SetBinCCForSchemeSwitch(ccLWE);
     }
 
+    Ciphertext<Element> GetSwkCF() {
+        VerifySchemeSwitchEnabled(__func__);
+        return m_SchemeSwitch->GetSwkCF();
+    }
+    void SetSwkCF(Ciphertext<Element> CKKStoFHEWswk) {
+        VerifySchemeSwitchEnabled(__func__);
+        m_SchemeSwitch->SetSwkCF(CKKStoFHEWswk);
+    }
+
     Ciphertext<Element> GetSwkFC() {
         VerifySchemeSwitchEnabled(__func__);
         return m_SchemeSwitch->GetSwkFC();

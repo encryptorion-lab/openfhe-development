@@ -3640,6 +3640,16 @@ public:
     void SetBinCCForSchemeSwitch(std::shared_ptr<lbcrypto::BinFHEContext> ccLWE) {
         GetScheme()->SetBinCCForSchemeSwitch(ccLWE);
     }
+
+    /* Getter and setter for the switching key between CKKS and FHEW
+    */
+    Ciphertext<Element> GetSwkCF() {
+        return GetScheme()->GetSwkCF();
+    }
+    void SetSwkCF(Ciphertext<Element> CKKStoFHEWswk) {
+        GetScheme()->SetSwkCF(CKKStoFHEWswk);
+    }
+
     /* Getter and setter for the switching key between FHEW and CKKS
     */
     Ciphertext<Element> GetSwkFC() {
