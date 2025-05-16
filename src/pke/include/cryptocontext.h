@@ -3641,6 +3641,12 @@ public:
         GetScheme()->SetBinCCForSchemeSwitch(ccLWE);
     }
 
+    /* Getter for ccKS
+    */
+    CryptoContext<Element> GetccKS() {
+        return GetScheme()->GetccKS();
+    }
+
     /* Getter for the switching key between CKKS and FHEW
     */
     EvalKey<Element> GetSwkCF() {

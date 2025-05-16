@@ -365,6 +365,13 @@ public:
     }
 
     /**
+     * Getter for ccKS
+    */
+    virtual CryptoContext<Element> GetccKS() {
+        OPENFHE_THROW("GetccKS is not supported for this scheme");
+    }
+
+    /**
      * Getter for the switching key between CKKS to FHEW
     */
     virtual EvalKey<Element> GetSwkCF() {

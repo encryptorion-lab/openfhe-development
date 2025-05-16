@@ -1523,6 +1523,11 @@ public:
         m_SchemeSwitch->SetBinCCForSchemeSwitch(ccLWE);
     }
 
+    CryptoContext<Element> GetccKS() {
+        VerifySchemeSwitchEnabled(__func__);
+        return m_SchemeSwitch->GetccKS();
+    }
+
     EvalKey<Element> GetSwkCF() {
         VerifySchemeSwitchEnabled(__func__);
         return m_SchemeSwitch->GetSwkCF();
