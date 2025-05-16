@@ -3367,7 +3367,7 @@ public:
    * @return the FHEW secret key
    * TODO: add an overload for when BinFHEContext is already generated and fed as a parameter
    */
-    LWEPrivateKey EvalCKKStoFHEWSetup(SchSwchParams params) {
+    LWEPrivateKey EvalCKKStoFHEWSetup(SchSwchParams &params) {
         VerifyCKKSScheme(__func__);
         SetParamsFromCKKSCryptocontext(params);
         return GetScheme()->EvalCKKStoFHEWSetup(params);
