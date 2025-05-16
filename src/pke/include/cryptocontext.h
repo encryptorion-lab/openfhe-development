@@ -3641,13 +3641,10 @@ public:
         GetScheme()->SetBinCCForSchemeSwitch(ccLWE);
     }
 
-    /* Getter and setter for the switching key between CKKS and FHEW
+    /* Getter for the switching key between CKKS and FHEW
     */
-    Ciphertext<Element> GetSwkCF() {
+    EvalKey<Element> GetSwkCF() {
         return GetScheme()->GetSwkCF();
-    }
-    void SetSwkCF(Ciphertext<Element> CKKStoFHEWswk) {
-        GetScheme()->SetSwkCF(CKKStoFHEWswk);
     }
 
     /* Getter and setter for the switching key between FHEW and CKKS
