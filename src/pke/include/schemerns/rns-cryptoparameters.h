@@ -382,6 +382,16 @@ public:
     }
 
     /**
+     * Gets the CRT basis {P} = {p_1,...,p_k}
+     * Used in Hybrid key switching
+     *
+     * @return the parameters moduli P
+     */
+    [[nodiscard]] const std::vector<NativeInteger> &GetModuliP() const {
+        return m_moduliP;
+    }
+
+    /**
    * Method that returns the number of towers within every digit.
    * This is the alpha parameter from the paper (see documentation
    * for KeySwitchHHybrid).
@@ -1419,6 +1429,7 @@ protected:
     // Params for Auxiliary CRT basis {P} = {p_1,...,p_k}
     // used in GHS key switching
     std::shared_ptr<ILDCRTParams<BigInteger>> m_paramsP;
+    std::vector<NativeInteger> m_moduliP;
 
     // Stores the number of towers per Q_i
     uint32_t m_numPerPartQ = 0;

@@ -159,6 +159,7 @@ void CryptoParametersRNS::PrecomputeCRTTables(KeySwitchTechnique ksTech, Scaling
 
         // Store the created moduli and roots in m_paramsP
         m_paramsP = std::make_shared<ILDCRTParams<BigInteger>>(2 * n, moduliP, rootsP);
+        m_moduliP = moduliP;
 
         // Create the moduli and roots for the extended CRT basis QP
         std::vector<NativeInteger> moduliQP(sizeQ + sizeP);
