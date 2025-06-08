@@ -1307,20 +1307,20 @@ std::shared_ptr<std::map<usint, EvalKey<DCRTPoly>>> SWITCHCKKSRNS::EvalCKKStoFHE
     uint32_t slots = m_numSlotsCKKS;
 
     // Compute indices for rotations for slotToCoeff transform
-    std::vector<int32_t> indexRotationS2C = FindLTRotationIndicesSwitch(m_dim1CF, M, slots);
-    indexRotationS2C.emplace_back(static_cast<int32_t>(slots));
+    m_indexRotationS2C = FindLTRotationIndicesSwitch(m_dim1CF, M, slots);
+    m_indexRotationS2C.emplace_back(static_cast<int32_t>(slots));
 
     // Remove possible duplicates and zero
-    sort(indexRotationS2C.begin(), indexRotationS2C.end());
-    indexRotationS2C.erase(unique(indexRotationS2C.begin(), indexRotationS2C.end()), indexRotationS2C.end());
-    indexRotationS2C.erase(std::remove(indexRotationS2C.begin(), indexRotationS2C.end(), 0), indexRotationS2C.end());
+    sort(m_indexRotationS2C.begin(), m_indexRotationS2C.end());
+    m_indexRotationS2C.erase(unique(m_indexRotationS2C.begin(), m_indexRotationS2C.end()), m_indexRotationS2C.end());
+    m_indexRotationS2C.erase(std::remove(m_indexRotationS2C.begin(), m_indexRotationS2C.end(), 0), m_indexRotationS2C.end());
 
     auto algo = ccCKKS->GetScheme();
 
     // Compute multiplication key
     algo->EvalMultKeyGen(privateKey);
 
-    auto evalKeys = algo->EvalAtIndexKeyGen(publicKey, privateKey, indexRotationS2C);
+    auto evalKeys = algo->EvalAtIndexKeyGen(publicKey, privateKey, m_indexRotationS2C);
 
     // Compute conjugation key
     auto conjKey       = ConjugateKeyGen(privateKey);
@@ -1772,16 +1772,16 @@ std::shared_ptr<std::map<usint, EvalKey<DCRTPoly>>> SWITCHCKKSRNS::EvalSchemeSwi
 
     /* CKKS to FHEW */
     // Compute indices for rotations for slotToCoeff transform
-    std::vector<int32_t> indexRotationS2C = FindLTRotationIndicesSwitch(m_dim1CF, M, slots);
-    indexRotationS2C.emplace_back(static_cast<int32_t>(slots));
+    m_indexRotationS2C = FindLTRotationIndicesSwitch(m_dim1CF, M, slots);
+    m_indexRotationS2C.emplace_back(static_cast<int32_t>(slots));
 
     // Compute indices for rotations for sparse packing
     if (ringDim > 2 * slots) {  // if the encoding is full, this does not execute
-        indexRotationS2C.reserve(indexRotationS2C.size() + GetMSB(ringDim) - 2 + GetMSB(slots) - 1);
+        m_indexRotationS2C.reserve(m_indexRotationS2C.size() + GetMSB(ringDim) - 2 + GetMSB(slots) - 1);
         for (uint32_t i = 1; i < ringDim / 2; i <<= 1) {
-            indexRotationS2C.emplace_back(static_cast<int32_t>(i));
+            m_indexRotationS2C.emplace_back(static_cast<int32_t>(i));
             if (i <= slots)
-                indexRotationS2C.emplace_back(-static_cast<int32_t>(i));
+                m_indexRotationS2C.emplace_back(-static_cast<int32_t>(i));
         }
     }
 
@@ -1834,17 +1834,17 @@ std::shared_ptr<std::map<usint, EvalKey<DCRTPoly>>> SWITCHCKKSRNS::EvalSchemeSwi
     }
 
     // Combine the indices lists
-    indexRotationS2C.reserve(indexRotationS2C.size() + indexRotationHomDec.size() + indexRotationArgmin.size());
-    indexRotationS2C.insert(indexRotationS2C.end(), indexRotationHomDec.begin(), indexRotationHomDec.end());
-    indexRotationS2C.insert(indexRotationS2C.end(), indexRotationArgmin.begin(), indexRotationArgmin.end());
+    m_indexRotationS2C.reserve(m_indexRotationS2C.size() + indexRotationHomDec.size() + indexRotationArgmin.size());
+    m_indexRotationS2C.insert(m_indexRotationS2C.end(), indexRotationHomDec.begin(), indexRotationHomDec.end());
+    m_indexRotationS2C.insert(m_indexRotationS2C.end(), indexRotationArgmin.begin(), indexRotationArgmin.end());
 
     // Remove possible duplicates and zero
-    sort(indexRotationS2C.begin(), indexRotationS2C.end());
-    indexRotationS2C.erase(unique(indexRotationS2C.begin(), indexRotationS2C.end()), indexRotationS2C.end());
-    indexRotationS2C.erase(std::remove(indexRotationS2C.begin(), indexRotationS2C.end(), 0), indexRotationS2C.end());
+    sort(m_indexRotationS2C.begin(), m_indexRotationS2C.end());
+    m_indexRotationS2C.erase(unique(m_indexRotationS2C.begin(), m_indexRotationS2C.end()), m_indexRotationS2C.end());
+    m_indexRotationS2C.erase(std::remove(m_indexRotationS2C.begin(), m_indexRotationS2C.end(), 0), m_indexRotationS2C.end());
 
     auto algo     = ccCKKS->GetScheme();
-    auto evalKeys = algo->EvalAtIndexKeyGen(publicKey, privateKey, indexRotationS2C);
+    auto evalKeys = algo->EvalAtIndexKeyGen(publicKey, privateKey, m_indexRotationS2C);
 
     // Compute conjugation key
     auto conjKey       = ConjugateKeyGen(privateKey);

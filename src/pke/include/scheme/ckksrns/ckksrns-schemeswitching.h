@@ -145,6 +145,14 @@ public:
         return m_modulus_LWE;
     }
 
+    [[nodiscard]] auto& GetU0Pre() const {
+        return m_U0Pre;
+    }
+
+    [[nodiscard]] auto& GetIndexRotationS2C() const {
+        return m_indexRotationS2C;
+    }
+
     //------------------------------------------------------------------------------
     // SERIALIZATION
     //------------------------------------------------------------------------------
@@ -298,6 +306,8 @@ private:
     Ciphertext<DCRTPoly> m_ctxtKS;
     // Precomputed matrix for CKKS to FHEW switching
     std::vector<ConstPlaintext> m_U0Pre;
+    // automorphism indices for slot to coeff
+    std::vector<int32_t> m_indexRotationS2C;
 
 #define Pi 3.14159265358979323846
 };
