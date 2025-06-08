@@ -395,6 +395,20 @@ public:
         OPENFHE_THROW("GetctxtKS is not supported for this scheme");
     }
 
+    /**
+     * Getter for U0Pre
+     */
+    virtual std::vector<ConstPlaintext> GetU0Pre() {
+        OPENFHE_THROW("GetU0Pre is not supported for this scheme");
+    }
+
+    /**
+     * Getter for IndexRotationS2C
+     */
+    virtual std::vector<int32_t> GetIndexRotationS2C() {
+        OPENFHE_THROW("GetIndexRotationS2C is not supported for this scheme");
+    }
+
     /////////////////////////////////////
     // SERIALIZATION
     /////////////////////////////////////

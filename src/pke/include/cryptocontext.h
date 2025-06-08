@@ -3675,11 +3675,13 @@ public:
         return GetScheme()->GetctxtKS();
     }
 
-    [[nodiscard]] auto& GetU0Pre() const {
+    std::vector<ConstPlaintext> GetU0Pre() {
+        VerifyCKKSScheme(__func__);
         return GetScheme()->GetU0Pre();
     }
 
-    [[nodiscard]] auto& GetIndexRotationS2C() const {
+    std::vector<int32_t> GetIndexRotationS2C() {
+        VerifyCKKSScheme(__func__);
         return GetScheme()->GetIndexRotationS2C();
     }
 

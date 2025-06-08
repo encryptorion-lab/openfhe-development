@@ -138,19 +138,17 @@ public:
     Ciphertext<DCRTPoly> GetctxtKS() override {
         return m_ctxtKS;
     }
+    std::vector<ConstPlaintext> GetU0Pre() override {
+        return m_U0Pre;
+    }
+    std::vector<int32_t> GetIndexRotationS2C() override {
+        return m_indexRotationS2C;
+    }
     uint32_t GetNumCtxtsToSwitch() {
         return m_numCtxts;
     }
     NativeInteger GetModulusLWEToSwitch() {
         return m_modulus_LWE;
-    }
-
-    [[nodiscard]] auto& GetU0Pre() const {
-        return m_U0Pre;
-    }
-
-    [[nodiscard]] auto& GetIndexRotationS2C() const {
-        return m_indexRotationS2C;
     }
 
     //------------------------------------------------------------------------------
