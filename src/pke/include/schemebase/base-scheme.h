@@ -1547,6 +1547,16 @@ public:
         return m_SchemeSwitch->GetctxtKS();
     }
 
+    Ciphertext<Element> GetU0Pre() {
+        VerifySchemeSwitchEnabled(__func__);
+        return m_SchemeSwitch->GetU0Pre();
+    }
+
+    Ciphertext<Element> GetIndexRotationS2C() {
+        VerifySchemeSwitchEnabled(__func__);
+        return m_SchemeSwitch->GetIndexRotationS2C();
+    }
+
     template <class Archive>
     void save(Archive& ar, std::uint32_t const version) const {
         // TODO (dsuponit): should we serialize all feature pointers???
