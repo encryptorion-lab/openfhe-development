@@ -3635,37 +3635,52 @@ public:
     /* Getter and setter for the binFHE cryptocontext used in scheme switching
     */
     std::shared_ptr<lbcrypto::BinFHEContext> GetBinCCForSchemeSwitch() {
+        VerifyCKKSScheme(__func__);
         return GetScheme()->GetBinCCForSchemeSwitch();
     }
     void SetBinCCForSchemeSwitch(std::shared_ptr<lbcrypto::BinFHEContext> ccLWE) {
+        VerifyCKKSScheme(__func__);
         GetScheme()->SetBinCCForSchemeSwitch(ccLWE);
     }
 
     /* Getter for ccKS
     */
     CryptoContext<Element> GetccKS() {
+        VerifyCKKSScheme(__func__);
         return GetScheme()->GetccKS();
     }
 
     /* Getter for the switching key between CKKS and FHEW
     */
     EvalKey<Element> GetSwkCF() {
+        VerifyCKKSScheme(__func__);
         return GetScheme()->GetSwkCF();
     }
 
     /* Getter and setter for the switching key between FHEW and CKKS
     */
     Ciphertext<Element> GetSwkFC() {
+        VerifyCKKSScheme(__func__);
         return GetScheme()->GetSwkFC();
     }
     void SetSwkFC(Ciphertext<Element> FHEWtoCKKSswk) {
+        VerifyCKKSScheme(__func__);
         GetScheme()->SetSwkFC(FHEWtoCKKSswk);
     }
 
     /* Getter for ctxtKS
     */
     Ciphertext<Element> GetctxtKS() {
+        VerifyCKKSScheme(__func__);
         return GetScheme()->GetctxtKS();
+    }
+
+    [[nodiscard]] auto& GetU0Pre() const {
+        return GetScheme()->GetU0Pre();
+    }
+
+    [[nodiscard]] auto& GetIndexRotationS2C() const {
+        return GetScheme()->GetIndexRotationS2C();
     }
 
     /**
