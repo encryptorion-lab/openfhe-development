@@ -78,7 +78,7 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
         qKS   <<= 18;
     }
     else {  // if (logQ == 11)
-        baseG     = 1 << 5;
+        baseG     = 1 << 9;
         logQprime = 27;
     }
 
